@@ -7,9 +7,9 @@ public class Main {
 
         try {
             con.getConnection();
-            System.out.println("Conexão realizada com sucesso");
+            System.out.println("Conexão realizada com sucesso.");
         } catch (Exception e) {
-            System.out.println("Conexão não foi estabelecida");
+            System.out.println("Conexão não foi estabelecida.");
         }
     }
 }

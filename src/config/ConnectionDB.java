@@ -8,7 +8,7 @@ public class ConnectionDB {
     private static final String USER = "root";
     private static final String PASSWORD = ""; // Sua senha MYSQL
 
-    public static Connection getConnection() {
+    public Connection getConnection() {
         try {
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (Exception e) {
