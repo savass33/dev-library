@@ -39,9 +39,9 @@ CREATE TABLE EMPRESTIMO (
     data_emprestimo DATE NOT NULL,
     data_prevista_devolucao DATE NOT NULL,
     data_devolucao DATE,
-    CONSTRAINT fk_emp_livro FOREIGN KEY (livro) REFERENCES LIVRO(id),
-    CONSTRAINT fk_emp_leitor FOREIGN KEY (leitor) REFERENCES LEITOR(id),
-    CONSTRAINT fk_emp_func FOREIGN KEY (funcionario) REFERENCES FUNCIONARIO(id)
+    CONSTRAINT fk_emp_livro FOREIGN KEY (fk_livro) REFERENCES LIVRO(id),
+    CONSTRAINT fk_emp_leitor FOREIGN KEY (fk_leitor) REFERENCES LEITOR(id),
+    CONSTRAINT fk_emp_func FOREIGN KEY (fk_funcionario) REFERENCES FUNCIONARIO(id)
 );
 
 -- MULTAS
@@ -51,5 +51,5 @@ CREATE TABLE MULTA (
     valor DECIMAL(6,2) NOT NULL,
     pago BOOLEAN,
     data_pagamento DATE,
-    CONSTRAINT fk_multa_emp FOREIGN KEY (emprestimo) REFERENCES EMPRESTIMO(id)
+    CONSTRAINT fk_multa_emp FOREIGN KEY (fk_emprestimo) REFERENCES EMPRESTIMO(id)
 );
