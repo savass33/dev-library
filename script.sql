@@ -33,9 +33,9 @@ CREATE TABLE FUNCIONARIO (
 -- EMPRÉSTIMOS
 CREATE TABLE EMPRESTIMO (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    livro INT NOT NULL,
-    leitor INT NOT NULL,
-    funcionario INT NOT NULL,
+    fk_livro INT NOT NULL,
+    fk_leitor INT NOT NULL,
+    fk_funcionario INT NOT NULL,
     data_emprestimo DATE NOT NULL,
     data_prevista_devolucao DATE NOT NULL,
     data_devolucao DATE,
@@ -47,7 +47,7 @@ CREATE TABLE EMPRESTIMO (
 -- MULTAS
 CREATE TABLE MULTA (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    emprestimo INT NOT NULL,
+    fk_emprestimo INT NOT NULL,
     valor DECIMAL(6,2) NOT NULL,
     pago BOOLEAN,
     data_pagamento DATE,
