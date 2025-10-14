@@ -1,23 +1,15 @@
 CREATE DATABASE devlibrary;
 USE devlibrary;
 
--- AUTORES
-CREATE TABLE AUTOR (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    nacionalidade VARCHAR(50)
-);
-
 -- LIVROS
 CREATE TABLE LIVRO (
     id INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(150) NOT NULL,
     isbn CHAR(13) NOT NULL UNIQUE,
+    autor VARCHAR(100) NOT NULL,
     ano_publicacao YEAR,
     genero VARCHAR(50),
-    autor INT NOT NULL,
-    status ENUM('Disponível', 'Emprestado') DEFAULT 'Disponível',
-    CONSTRAINT fk_livro_autor FOREIGN KEY (autor) REFERENCES AUTOR(id)
+    status ENUM('Disponível', 'Emprestado') DEFAULT 'Disponível'
 );
 
 -- LEITORES
@@ -29,7 +21,7 @@ CREATE TABLE LEITOR (
     telefone VARCHAR(15)
 );
 
--- FUNCIONARIOS
+-- FUNCIONÁRIOS
 CREATE TABLE FUNCIONARIO (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
