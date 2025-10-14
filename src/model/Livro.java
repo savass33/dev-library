@@ -4,11 +4,24 @@ public class Livro {
     private int id;
     private String titulo;
     private String isbn;
+    private String autor;
     private String anoPublicacao;
     private String genero;
-    private Autor autor;
     private String status;
 
+    public Livro() {
+    }
+
+    public Livro(String titulo, String isbn, String autor, String anoPublicacao, String genero) {
+        this.titulo = titulo;
+        this.isbn = isbn;
+        this.autor = autor;
+        this.anoPublicacao = anoPublicacao;
+        this.genero = genero;
+        this.status = "Disponível";
+    }
+
+    // Getters e Setters
     public int getId() {
         return id;
     }
@@ -33,6 +46,14 @@ public class Livro {
         this.isbn = isbn;
     }
 
+    public String getAutor() {
+        return autor;
+    }
+
+    public void setAutor(String autor) {
+        this.autor = autor;
+    }
+
     public String getAnoPublicacao() {
         return anoPublicacao;
     }
@@ -49,14 +70,6 @@ public class Livro {
         this.genero = genero;
     }
 
-    public Autor getAutor() {
-        return autor;
-    }
-
-    public void setAutor(Autor autor) {
-        this.autor = autor;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -65,13 +78,10 @@ public class Livro {
         this.status = status;
     }
 
-    public Livro(int id, String titulo, String isbn, String anoPublicacao, String genero, Autor autor, String status) {
-        this.id = id;
-        this.titulo = titulo;
-        this.isbn = isbn;
-        this.anoPublicacao = anoPublicacao;
-        this.genero = genero;
-        this.autor = autor;
-        this.status = status;
+    @Override
+    public String toString() {
+        return id + " - " + titulo + " (" + autor + ") - ISBN: " + isbn +
+                " - Ano: " + anoPublicacao + " - Gênero: " + genero +
+                " - Status: " + status;
     }
 }

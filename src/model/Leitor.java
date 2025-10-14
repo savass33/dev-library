@@ -5,12 +5,22 @@ public class Leitor {
     String nome;
     String email;
     String telefone;
+    String matricula;
 
-    public Leitor(int id, String nome, String email, String telefone) {
+    public String getMatricula() {
+        return matricula;
+    }
+
+    public void setMatricula(String matricula) {
+        this.matricula = matricula;
+    }
+
+    public Leitor(int id, String nome, String email, String telefone, String matricula) {
         this.id = id;
         this.nome = nome;
         this.email = email;
         this.telefone = telefone;
+        this.matricula = matricula;
     }
 
     public int getId() {
