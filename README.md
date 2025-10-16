@@ -10,10 +10,9 @@ A aplicação permite o cadastro, listagem, busca e remoção de autores em um b
 
 ## ⚙️ Funcionalidades
 
-* Inserir novo autor
-* Listar todos os autores
-* Buscar autor por ID
-* Remover autor
+* Gerenciar livros
+* Gerenciar emprestimos
+* Gerenciar multas
 
 ---
 
@@ -34,38 +33,6 @@ Devlibrary/
 │       └── database.sql
 └── README.md
 ```
-
----
-
-## 🗃️ Banco de Dados
-
-```sql
-CREATE DATABASE devlibrary;
-USE devlibrary;
-
-CREATE TABLE AUTOR (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    nacionalidade VARCHAR(50)
-);
-```
-
----
-
-## 💡 Exemplo de Uso
-
-```java
-public class Main {
-    public static void main(String[] args) {
-        AutorDAO autorDAO = new AutorDAO();
-        Autor autor = new Autor("J.R.R. Tolkien", "Britânica");
-
-        autorDAO.inserir(autor);
-        autorDAO.listarTodos();
-    }
-}
-```
-
 ---
 
 ## 🧠 Conceitos Aplicados
@@ -101,7 +68,3 @@ public class Main {
    ```
 
 ---
-
-## 📄 Licença
-
-Este projeto é de uso educacional e está sob a licença **MIT**.
