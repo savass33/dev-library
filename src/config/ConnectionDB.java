@@ -10,6 +10,7 @@ public class ConnectionDB {
 
     public static Connection getConnection() {
         try {
+            System.out.println("Conexão bem sucedida");
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao conectar ao banco: " + e.getMessage());
