@@ -15,8 +15,10 @@ public class Leitor {
         this.matricula = matricula;
     }
 
-    public Leitor(int id, String nome, String email, String telefone, String matricula) {
-        this.id = id;
+    public Leitor() {
+    }
+
+    public Leitor(String nome, String email, String telefone, String matricula) {
         this.nome = nome;
         this.email = email;
         this.telefone = telefone;
@@ -54,4 +56,16 @@ public class Leitor {
     public void setTelefone(String telefone) {
         this.telefone = telefone;
     }
+
+    @Override
+    public String toString() {
+        return "Leitor{" +
+                "id=" + id +
+                ", nome='" + nome + '\'' +
+                ", matricula='" + matricula + '\'' +
+                ", email='" + email + '\'' +
+                ", telefone='" + telefone + '\'' +
+                '}';
+    }
+
 }

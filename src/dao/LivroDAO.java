@@ -34,7 +34,7 @@ public class LivroDAO {
                 ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Livro livro = new Livro();
-                livro.setId(rs.getInt("id"));
+                livro.setId(rs.getInt("id_livro"));
                 livro.setTitulo(rs.getString("titulo"));
                 livro.setIsbn(rs.getString("isbn"));
                 livro.setAutor(rs.getString("autor"));
@@ -49,13 +49,13 @@ public class LivroDAO {
 
     // Buscar por ID
     public Livro buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM LIVRO WHERE id = ?";
+        String sql = "SELECT * FROM LIVRO WHERE id_livro = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 Livro livro = new Livro();
-                livro.setId(rs.getInt("id"));
+                livro.setId(rs.getInt("id_livro"));
                 livro.setTitulo(rs.getString("titulo"));
                 livro.setIsbn(rs.getString("isbn"));
                 livro.setAutor(rs.getString("autor"));
@@ -70,7 +70,7 @@ public class LivroDAO {
 
     // Atualizar status
     public void atualizarStatus(int id, String novoStatus) throws SQLException {
-        String sql = "UPDATE LIVRO SET status = ? WHERE id = ?";
+        String sql = "UPDATE LIVRO SET status = ? WHERE id_livro = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, novoStatus);
             stmt.setInt(2, id);
