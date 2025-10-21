@@ -2,12 +2,19 @@ import config.ConnectionDB;
 import dao.*;
 import model.*;
 
+import view.MainMenu;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
+
+        // Look & Feel moderno (Nimbus)
+        setLookAndFeel();
 
         System.out.println("Iniciando aplicação...");
         System.out.println("Testando conexão...");
@@ -18,7 +25,7 @@ public class Main {
                 System.out.println("Conexão bem-sucedida!");
             } else {
                 System.out.println("Falha na conexão!");
-                return;
+                // Mesmo com falha, ainda abrimos a UI; remova se quiser bloquear sem DB
             }
 
             // ======== TESTE FUNCIONARIO ========
@@ -88,5 +95,19 @@ public class Main {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        // --- Abre a interface gráfica (JFrame) na Event Dispatch Thread ---
+        SwingUtilities.invokeLater(() -> new MainMenu().setVisible(true));
+    }
+
+    private static void setLookAndFeel() {
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception ignored) {}
     }
 }
