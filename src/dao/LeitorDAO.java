@@ -123,4 +123,18 @@ public class LeitorDAO {
             stmt.executeUpdate();
         }
     }
+
+    // Atualizar dados básicos do leitor (não altera matrícula)
+    public void atualizar(Leitor leitor) throws SQLException {
+        String sql = "UPDATE LEITOR SET nome=?, email=?, telefone=? WHERE id_leitor=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, leitor.getNome());
+            ps.setString(2, leitor.getEmail());
+            ps.setString(3, leitor.getTelefone());
+            ps.setInt(4, leitor.getId());
+            ps.executeUpdate();
+        }
+    }
+
+
 }

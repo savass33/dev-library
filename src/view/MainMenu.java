@@ -15,6 +15,8 @@ import view.EmprestimoView;
 import view.DevolucaoView;
 import view.AtrasadosView;
 import view.HistoricoLeitorView;
+import view.LivroView;
+import view.LeitoresView;
 
 /**
  * Menu principal (JFrame) da aplicação.
@@ -22,9 +24,6 @@ import view.HistoricoLeitorView;
  * - Sidebar com atalhos
  * - Área central com CardLayout
  * - Status bar (mensagens + relógio)
- *
- * Requer que existam: HomePanel e PlaceholderPanel no pacote "view",
- * além das views EmprestimoView, DevolucaoView, AtrasadosView, HistoricoLeitorView.
  */
 public class MainMenu extends JFrame {
 
@@ -35,7 +34,7 @@ public class MainMenu extends JFrame {
     private final JLabel statusLabel = new JLabel("Pronto.");
     private final JLabel clockLabel = new JLabel();
 
-    private final Map<String, JComponent> cards = new LinkedHashMap<>();
+    final Map<String, JComponent> cards = new LinkedHashMap<>();
 
     public MainMenu(AppContext ctx) {
         super("DevLibrary - Menu Principal");
@@ -72,8 +71,8 @@ public class MainMenu extends JFrame {
                 () -> showCard("autores")));
         cadastros.add(menuItem("Livros", KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK),
                 () -> showCard("livros")));
-        cadastros.add(menuItem("Usuários", KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK),
-                () -> showCard("usuarios")));
+        cadastros.add(menuItem("Leitores", KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK),
+                () -> showCard("leitores")));
 
         // Operações
         JMenu operacoes = new JMenu("Operações");
@@ -124,7 +123,7 @@ public class MainMenu extends JFrame {
         gc.gridy++; side.add(primaryButton("Início", () -> showCard("home")), gc);
         gc.gridy++; side.add(primaryButton("Autores", () -> showCard("autores")), gc);
         gc.gridy++; side.add(primaryButton("Livros", () -> showCard("livros")), gc);
-        gc.gridy++; side.add(primaryButton("Usuários", () -> showCard("usuarios")), gc);
+        gc.gridy++; side.add(primaryButton("Leitores", () -> showCard("leitores")), gc);
         gc.gridy++; side.add(primaryButton("Empréstimos", () -> showCard("emprestimos")), gc);
         gc.gridy++; side.add(primaryButton("Devoluções", () -> showCard("devolucoes")), gc);
         gc.gridy++; side.add(primaryButton("Atrasados", () -> showCard("atrasados")), gc);
@@ -166,14 +165,8 @@ public class MainMenu extends JFrame {
                 "Autores",
                 "Gerencie autores da biblioteca.\n\nAções: Cadastrar, Listar, Atualizar, Remover."
         ));
-        addCard("livros", new PlaceholderPanel(
-                "Livros",
-                "Gerencie livros do acervo.\n\nAções: Cadastrar, Buscar por título/ISBN, Atualizar status."
-        ));
-        addCard("usuarios", new PlaceholderPanel(
-                "Usuários",
-                "Gerencie leitores.\n\nAções: Cadastrar, atualizar contato, consultar histórico."
-        ));
+        addCard("livros", new LivroView(ctx));
+        addCard("leitores", new LeitoresView(ctx));
 
         // Views conectadas ao EmprestimoService/DAOs via AppContext
         addCard("emprestimos", new EmprestimoView(ctx));
@@ -191,11 +184,29 @@ public class MainMenu extends JFrame {
 
     private void showCard(String name) {
         if (!cards.containsKey(name)) return;
+        // Ao abrir a tela de empréstimos, garanta dados atualizados
+        if ("emprestimos".equals(name)) {
+            refreshEmprestimoLists();
+        }
         cardLayout.show(center, name);
         setStatus("Tela: " + capitalize(name));
     }
 
     private void setStatus(String msg) { statusLabel.setText(msg); }
+
+    // ---------- Refresh externo chamado por DevolucaoView ----------
+    /** Recria o card de empréstimo para atualizar as listas (livros disponíveis, etc.). */
+    public void refreshEmprestimoLists() {
+        JComponent old = cards.get("emprestimos");
+        if (old != null) {
+            center.remove(old);
+        }
+        EmprestimoView novo = new EmprestimoView(ctx);
+        cards.put("emprestimos", novo);
+        center.add(novo, "emprestimos");
+        center.revalidate();
+        center.repaint();
+    }
 
     // ===================== HELPERS =====================
 

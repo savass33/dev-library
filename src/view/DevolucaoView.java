@@ -113,6 +113,12 @@ public class DevolucaoView extends JPanel {
             service.devolverLivro(idEmp, data);
             JOptionPane.showMessageDialog(this, "Devolução registrada.", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             loadOpenLoans();
+
+            // avisa o menu principal para atualizar a tela de empréstimos (livros disponíveis)
+            java.awt.Window w = SwingUtilities.getWindowAncestor(this);
+            if (w instanceof MainMenu mm) {
+                mm.refreshEmprestimoLists();
+            }
         } catch (EmprestimoService.ServiceException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }

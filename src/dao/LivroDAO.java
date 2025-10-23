@@ -69,21 +69,24 @@ public class LivroDAO {
     }
 
     // Atualizar status
-    public void atualizarStatus(int id, String novoStatus) throws SQLException {
-        String sql = "UPDATE LIVRO SET status = ? WHERE id_livro = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, novoStatus);
-            stmt.setInt(2, id);
-            stmt.executeUpdate();
+    // LivroDAO.java
+    public void atualizarStatus(int idLivro, String status) throws SQLException {
+        String sql = "UPDATE LIVRO SET status=? WHERE id_livro=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, idLivro);
+            ps.executeUpdate();
         }
     }
 
-    // Excluir
+
+    // Remover livro por ID
     public void excluir(int id) throws SQLException {
-        String sql = "DELETE FROM LIVRO WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            stmt.executeUpdate();
+        String sql = "DELETE FROM LIVRO WHERE id_livro = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
         }
     }
+
 }

@@ -186,6 +186,12 @@ public class EmprestimoView extends JPanel {
         }
     }
 
+    // EmprestimoView.java
+    public void refresh() {
+        // Recarrega os combos (livros disponíveis, etc.)
+        loadCombos();
+    }
+
     private void showWarn(String msg) { JOptionPane.showMessageDialog(this, msg, "Aviso", JOptionPane.WARNING_MESSAGE); }
     private void showError(String msg) { JOptionPane.showMessageDialog(this, msg, "Erro", JOptionPane.ERROR_MESSAGE); }
 }
