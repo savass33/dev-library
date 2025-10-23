@@ -2,6 +2,14 @@ import config.ConnectionDB;
 import dao.*;
 import model.*;
 
+import view.AppContext;
+import view.LoginFrame;
+import view.AuthService;
+import view.InMemoryAuthService;
+
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -9,9 +17,12 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
+        setLookAndFeel();
+
         System.out.println("Iniciando aplicação...");
         testarConexao();
 
+        // ===== Bloco dos seus testes (mantive como estava) =====
         try (Connection conn = ConnectionDB.getConnection()) {
 
             // ======== TESTE FUNCIONÁRIO ========
@@ -32,6 +43,33 @@ public class Main {
         } catch (SQLException e) {
             System.out.println("Erro geral na execução dos testes:");
             e.printStackTrace();
+        }
+
+        // ======== Conexão dedicada para a UI (sem try-with-resources) ========
+        Connection uiConn = null;
+        try {
+            uiConn = ConnectionDB.getConnection();
+            if (uiConn == null) {
+                System.out.println("Falha na conexão da UI. Encerrando.");
+                return;
+            }
+
+            AppContext ctx = new AppContext(uiConn);
+
+            final Connection finalUiConn = uiConn;
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try { if (finalUiConn != null && !finalUiConn.isClosed()) finalUiConn.close(); } catch (Exception ignored) {}
+            }));
+
+            SwingUtilities.invokeLater(() -> {
+                AuthService auth = new InMemoryAuthService(ctx);
+                new LoginFrame(ctx, auth).setVisible(true);
+            });
+
+        } catch (Exception e) {
+            System.out.println("Erro ao abrir a UI:");
+            e.printStackTrace();
+            try { if (uiConn != null) uiConn.close(); } catch (Exception ignored) {}
         }
     }
 
@@ -54,10 +92,8 @@ public class Main {
     private static void testarFuncionario(Connection conn) throws SQLException {
         System.out.println("===== TESTE: FUNCIONÁRIO =====");
         FuncionarioDAO funcionarioDAO = new FuncionarioDAO(conn);
-
         Funcionario funcionario = new Funcionario(0, "João Silva", "1234", "joao@email.com", "99999-9999");
         funcionarioDAO.inserir(funcionario);
-
         List<Funcionario> funcionarios = funcionarioDAO.listar();
         funcionarios.forEach(System.out::println);
         System.out.println();
@@ -66,10 +102,8 @@ public class Main {
     private static void testarLeitor(Connection conn) throws SQLException {
         System.out.println("===== TESTE: LEITOR =====");
         LeitorDAO leitorDAO = new LeitorDAO(conn);
-
         Leitor leitor = new Leitor("Levi", "levi@gays.com", "98765-4321", "2469");
         leitorDAO.inserir(leitor);
-
         List<Leitor> leitores = leitorDAO.listar();
         leitores.forEach(System.out::println);
         System.out.println();
@@ -78,10 +112,8 @@ public class Main {
     private static void testarLivro(Connection conn) throws SQLException {
         System.out.println("===== TESTE: LIVRO =====");
         LivroDAO livroDAO = new LivroDAO(conn);
-
         Livro livro = new Livro("O Senhor dos Anéis", "12345", "J.R.R. Tolkien", "1954", "Fantasia");
         livroDAO.inserir(livro);
-
         List<Livro> livros = livroDAO.listar();
         livros.forEach(System.out::println);
         System.out.println();
@@ -99,25 +131,21 @@ public class Main {
         Leitor leitor = leitorDAO.listar().get(0);
 
         Emprestimo emprestimo = new Emprestimo(
-                0,
-                livro,
-                funcionario,
-                "2025-10-16",
-                "2025-10-23",
-                null,
-                leitor);
-
+                0, livro, funcionario,
+                "2025-10-16", "2025-10-23", null, leitor
+        );
         emprestimoDAO.inserir(emprestimo);
 
         List<Emprestimo> emprestimos = emprestimoDAO.listar();
         emprestimos.forEach(e -> System.out.println(
                 "ID: " + e.getid() +
-                        ", Livro: " + e.getLivro().getTitulo() +
-                        ", Leitor: " + e.getLeitor().getNome() +
-                        ", Funcionário: " + e.getFuncionario().getNome() +
-                        ", Data empréstimo: " + e.getData_emprestimo() +
-                        ", Data prevista: " + e.getData_prevista() +
-                        ", Data devolução: " + e.getData_devolucao()));
+                ", Livro: " + e.getLivro().getTitulo() +
+                ", Leitor: " + e.getLeitor().getNome() +
+                ", Funcionário: " + e.getFuncionario().getNome() +
+                ", Data empréstimo: " + e.getData_emprestimo() +
+                ", Data prevista: " + e.getData_prevista() +
+                ", Data devolução: " + e.getData_devolucao()
+        ));
         System.out.println();
     }
 
@@ -134,10 +162,22 @@ public class Main {
         List<Multa> multas = multaDAO.listar();
         multas.forEach(m -> System.out.println(
                 "ID: " + m.getId() +
-                        ", Empréstimo ID: " + m.getEmprestimo().getid() +
-                        ", Valor: " + m.getValor() +
-                        ", Pago: " + m.isPago() +
-                        ", Data pagamento: " + m.getData_pagamento()));
+                ", Empréstimo ID: " + m.getEmprestimo().getid() +
+                ", Valor: " + m.getValor() +
+                ", Pago: " + m.isPago() +
+                ", Data pagamento: " + m.getData_pagamento()
+        ));
         System.out.println();
+    }
+
+    private static void setLookAndFeel() {
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception ignored) {}
     }
 }
