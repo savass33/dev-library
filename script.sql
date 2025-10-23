@@ -18,6 +18,7 @@ DROP DATABASE devlibrary;
 		id_leitor INT AUTO_INCREMENT PRIMARY KEY,
 		nome VARCHAR(100) NOT NULL,
 		matricula VARCHAR(20) NOT NULL UNIQUE,
+        senha CHAR(4) NOT NULL,
 		email VARCHAR(100),
 		telefone VARCHAR(15)
 	);
@@ -27,6 +28,7 @@ DROP DATABASE devlibrary;
 		id_funcionario INT AUTO_INCREMENT PRIMARY KEY,
 		nome VARCHAR(100) NOT NULL,
 		matricula VARCHAR(20) NOT NULL UNIQUE,
+        senha CHAR(4) NOT NULL,
 		email VARCHAR(100),
 		telefone VARCHAR(15)
 	);
@@ -54,3 +56,5 @@ DROP DATABASE devlibrary;
 		data_pagamento DATE,
 		CONSTRAINT fk_multa_emp FOREIGN KEY (fk_emprestimo) REFERENCES EMPRESTIMO(id_emprestimo)
 	);
+    
+    select * from LIVRO
