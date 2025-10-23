@@ -57,12 +57,32 @@ public class LoginFrame extends JFrame {
             if (!s.matches("\\d{4}")) { msg("Senha deve ter 4 dígitos.", JOptionPane.WARNING_MESSAGE); return; }
             try {
                 AuthService.Role role = auth.login(m, s);
+
+                // ====== popula sessão ======
+                ctx.session.role = role;
+                ctx.session.matricula = m;
+                try {
+                    if (role == AuthService.Role.FUNCIONARIO) {
+                        ctx.session.funcionario = ctx.funcionarioDAO.buscarPorMatricula(m);
+                        ctx.session.leitor = null;
+                    } else {
+                        ctx.session.leitor = ctx.leitorDAO.buscarPorMatricula(m);
+                        ctx.session.funcionario = null;
+                    }
+                } catch (Exception ex) {
+                    msg("Erro carregando dados do usuário: " + ex.getMessage(), JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Abre o menu correspondente
                 SwingUtilities.invokeLater(() -> {
                     dispose();
                     if (role == AuthService.Role.FUNCIONARIO) new MainMenu(ctx).setVisible(true);
                     else new AlunoMenu(ctx).setVisible(true);
                 });
-            } catch (Exception ex) { msg("Erro: " + ex.getMessage(), JOptionPane.ERROR_MESSAGE); }
+            } catch (Exception ex) {
+                msg("Erro: " + ex.getMessage(), JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         return p;

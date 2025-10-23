@@ -126,14 +126,22 @@ public class EmprestimoView extends JPanel {
 
             // Leitores
             cbLeitor.removeAllItems();
-            for (Leitor le : ctx.leitorDAO.listar()) cbLeitor.addItem(le);
+            if (ctx.session.isAluno() && ctx.session.leitor != null) {
+                cbLeitor.addItem(ctx.session.leitor);
+                cbLeitor.setEnabled(false); // aluno só pode para ele mesmo
+            } else {
+                cbLeitor.setEnabled(true);
+                for (Leitor le : ctx.leitorDAO.listar()) cbLeitor.addItem(le);
+            }
 
-            // Funcionários
+            // Funcionários (sempre listar; aluno escolhe o responsável pelo registro)
             cbFuncionario.removeAllItems();
             for (Funcionario f : ctx.funcionarioDAO.listar()) cbFuncionario.addItem(f);
 
-            JOptionPane.showMessageDialog(this, "Listas atualizadas (" + livrosDisp.size() + " livros disponíveis).",
-                    "OK", JOptionPane.INFORMATION_MESSAGE);
+            if (!ctx.session.isAluno()) {
+                JOptionPane.showMessageDialog(this, "Listas atualizadas (" + livrosDisp.size() + " livros disponíveis).",
+                        "OK", JOptionPane.INFORMATION_MESSAGE);
+            }
         } catch (SQLException ex) {
             showError("Erro ao carregar dados: " + ex.getMessage());
         }
@@ -141,11 +149,11 @@ public class EmprestimoView extends JPanel {
 
     private void doEmprestar() {
         Livro livro = (Livro) cbLivro.getSelectedItem();
-        Leitor leitor = (Leitor) cbLeitor.getSelectedItem();
+        Leitor leitor = ctx.session.isAluno() ? ctx.session.leitor : (Leitor) cbLeitor.getSelectedItem();
         Funcionario func = (Funcionario) cbFuncionario.getSelectedItem();
 
         if (livro == null || leitor == null || func == null) {
-            showWarn("Selecione livro, leitor e funcionário.");
+            showWarn("Selecione livro e funcionário. (Leitor é fixo para alunos)");
             return;
         }
 

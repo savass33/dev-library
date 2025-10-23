@@ -5,7 +5,7 @@ import service.EmprestimoService;
 
 import java.sql.Connection;
 
-/** Guarda Connection, DAOs e Services para a camada de UI. */
+/** Guarda Connection, DAOs, Services e a sessão do usuário logado. */
 public class AppContext {
     public final Connection conn;
 
@@ -18,16 +18,17 @@ public class AppContext {
     // Services
     public final EmprestimoService emprestimoService;
 
+    // Sessão atual
+    public final SessionInfo session = new SessionInfo();
+
     public AppContext(Connection conn) {
         this.conn = conn;
 
-        // Instancia DAOs com a mesma conexão
         this.emprestimoDAO = new EmprestimoDAO(conn);
         this.livroDAO = new LivroDAO(conn);
         this.leitorDAO = new LeitorDAO(conn);
         this.funcionarioDAO = new FuncionarioDAO(conn);
 
-        // Service com regras de negócio
         this.emprestimoService = new EmprestimoService(
                 this.emprestimoDAO, this.livroDAO, this.leitorDAO, this.funcionarioDAO
         );

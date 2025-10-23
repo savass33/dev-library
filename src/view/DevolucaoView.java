@@ -3,7 +3,6 @@ package view;
 import view.AppContext;
 import model.Emprestimo;
 import service.EmprestimoService;
-import service.EmprestimoService.ServiceException;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -64,12 +63,20 @@ public class DevolucaoView extends JPanel {
 
     private void loadOpenLoans() {
         try {
-            List<Emprestimo> abertos = ctx.emprestimoDAO.listar().stream()
+            List<Emprestimo> todos = ctx.emprestimoDAO.listar().stream()
                     .filter(e -> e.getData_devolucao() == null)
                     .collect(Collectors.toList());
 
+            // Se for aluno, só mostra os dele
+            if (ctx.session.isAluno() && ctx.session.leitor != null) {
+                int idLeitor = ctx.session.leitor.getId();
+                todos = todos.stream()
+                        .filter(e -> e.getLeitor() != null && e.getLeitor().getId() == idLeitor)
+                        .collect(Collectors.toList());
+            }
+
             model.setRowCount(0);
-            for (Emprestimo e : abertos) {
+            for (Emprestimo e : todos) {
                 Vector<Object> row = new Vector<>();
                 row.add(e.getid());
                 row.add(e.getLivro() != null ? e.getLivro().getTitulo() : "-");
@@ -106,7 +113,7 @@ public class DevolucaoView extends JPanel {
             service.devolverLivro(idEmp, data);
             JOptionPane.showMessageDialog(this, "Devolução registrada.", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             loadOpenLoans();
-        } catch (ServiceException ex) {
+        } catch (EmprestimoService.ServiceException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
