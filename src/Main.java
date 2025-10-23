@@ -5,7 +5,7 @@ import model.*;
 import view.AppContext;
 import view.LoginFrame;
 import view.AuthService;
-import view.InMemoryAuthService;
+import view.DBAuthService; // <- usa credenciais no BD (LEITOR/FUNCIONARIO)
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -62,7 +62,7 @@ public class Main {
             }));
 
             SwingUtilities.invokeLater(() -> {
-                AuthService auth = new InMemoryAuthService(ctx);
+                AuthService auth = new DBAuthService(ctx); // <- persiste e valida no BD
                 new LoginFrame(ctx, auth).setVisible(true);
             });
 
