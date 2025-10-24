@@ -14,9 +14,13 @@ public class AppContext {
     public final LivroDAO livroDAO;
     public final LeitorDAO leitorDAO;
     public final FuncionarioDAO funcionarioDAO;
+    public final MultaDAO multaDAO;
 
     // Services
     public final EmprestimoService emprestimoService;
+
+    // Auth (definido na Main ao abrir o LoginFrame)
+    public AuthService auth;
 
     // Sessão atual
     public final SessionInfo session = new SessionInfo();
@@ -28,9 +32,10 @@ public class AppContext {
         this.livroDAO = new LivroDAO(conn);
         this.leitorDAO = new LeitorDAO(conn);
         this.funcionarioDAO = new FuncionarioDAO(conn);
+        this.multaDAO = new MultaDAO(conn);
 
         this.emprestimoService = new EmprestimoService(
-                this.emprestimoDAO, this.livroDAO, this.leitorDAO, this.funcionarioDAO
+                this.emprestimoDAO, this.livroDAO, this.leitorDAO, this.funcionarioDAO, this.multaDAO
         );
     }
 }

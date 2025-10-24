@@ -1,6 +1,5 @@
 package view;
 
-import view.AppContext;
 import model.Emprestimo;
 import service.EmprestimoService;
 
@@ -8,7 +7,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -22,9 +20,7 @@ public class DevolucaoView extends JPanel {
 
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[]{"ID", "Livro", "Leitor", "Funcionário", "Empréstimo", "Prevista"}, 0
-    ) {
-        @Override public boolean isCellEditable(int r, int c) { return false; }
-    };
+    ) { @Override public boolean isCellEditable(int r, int c) { return false; } };
     private final JTable table = new JTable(model);
 
     private final JTextField tfDataDev = new JTextField(10); // yyyy-MM-dd
@@ -86,7 +82,7 @@ public class DevolucaoView extends JPanel {
                 row.add(e.getData_prevista());
                 model.addRow(row);
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar empréstimos: " + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
@@ -116,9 +112,7 @@ public class DevolucaoView extends JPanel {
 
             // avisa o menu principal para atualizar a tela de empréstimos (livros disponíveis)
             java.awt.Window w = SwingUtilities.getWindowAncestor(this);
-            if (w instanceof MainMenu mm) {
-                mm.refreshEmprestimoLists();
-            }
+            if (w instanceof MainMenu mm) mm.refreshEmprestimoLists();
         } catch (EmprestimoService.ServiceException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }

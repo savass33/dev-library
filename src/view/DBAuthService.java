@@ -23,10 +23,9 @@ public class DBAuthService implements AuthService {
         if (!senha.matches("\\d{4}")) throw new IllegalArgumentException("Senha deve ter 4 dígitos.");
 
         try {
-            // Checa diretamente nas tabelas
+            // Checa diretamente nas duas tabelas
             if (checkSenha("FUNCIONARIO", matricula, senha)) return Role.FUNCIONARIO;
             if (checkSenha("LEITOR", matricula, senha))      return Role.ALUNO;
-
             throw new IllegalArgumentException("Credenciais inválidas.");
         } catch (SQLException e) {
             throw new Exception("Erro ao validar login: " + e.getMessage(), e);
@@ -35,6 +34,10 @@ public class DBAuthService implements AuthService {
 
     @Override
     public RegisterResult cadastrarAluno(String nome, String email, String telefone) throws Exception {
+        if (email == null || email.isBlank()) throw new IllegalArgumentException("Informe um e-mail.");
+        if (ctx.leitorDAO.existsEmail(email) || ctx.funcionarioDAO.existsEmail(email))
+            throw new IllegalArgumentException("E-mail já cadastrado.");
+
         String matricula = gerarMatricula('0');
         String senha = gerarSenha4();
         try {
@@ -48,10 +51,13 @@ public class DBAuthService implements AuthService {
 
     @Override
     public RegisterResult cadastrarFuncionario(String nome, String email, String telefone) throws Exception {
+        if (email == null || email.isBlank()) throw new IllegalArgumentException("Informe um e-mail.");
+        if (ctx.leitorDAO.existsEmail(email) || ctx.funcionarioDAO.existsEmail(email))
+            throw new IllegalArgumentException("E-mail já cadastrado.");
+
         String matricula = gerarMatricula('1');
         String senha = gerarSenha4();
         try {
-            // ORDEM CORRETA: (id, nome, email, telefone, matricula)
             Funcionario novo = new Funcionario(0, nome, email, telefone, matricula);
             ctx.funcionarioDAO.inserir(novo, senha);
             return new RegisterResult(nome, matricula, senha, Role.FUNCIONARIO);
@@ -61,7 +67,6 @@ public class DBAuthService implements AuthService {
     }
 
     // ---------- helpers ----------
-
     private boolean checkSenha(String table, String matricula, String senha) throws SQLException {
         String sql = "SELECT 1 FROM " + table + " WHERE matricula=? AND senha=? LIMIT 1";
         try (PreparedStatement ps = ctx.conn.prepareStatement(sql)) {

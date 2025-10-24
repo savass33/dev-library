@@ -9,22 +9,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// Views/Context (mesmo pacote "view")
-import view.AppContext;
-import view.EmprestimoView;
-import view.DevolucaoView;
-import view.AtrasadosView;
-import view.HistoricoLeitorView;
-import view.LivroView;
-import view.LeitoresView;
-
-/**
- * Menu principal (JFrame) da aplicação.
- * - Menubar (Cadastros, Operações, Relatórios, Ajuda)
- * - Sidebar com atalhos
- * - Área central com CardLayout
- * - Status bar (mensagens + relógio)
- */
+// Views / Context
+// (como tudo está no mesmo pacote "view", não é necessário importar LoginFrame/DBAuthService)
 public class MainMenu extends JFrame {
 
     private final AppContext ctx; // contexto com Connection/DAOs/Services
@@ -272,7 +258,20 @@ public class MainMenu extends JFrame {
                 "Tem certeza que deseja sair?", "Sair",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (opt == JOptionPane.YES_OPTION) {
+            // Limpa sessão e volta para a tela de login
+            try {
+                if (ctx.session != null) {
+                    ctx.session.matricula = null;
+                    ctx.session.funcionario = null;
+                    ctx.session.leitor = null;
+                    ctx.session.role = null;
+                }
+            } catch (Throwable ignored) {}
+
             dispose();
+
+            // Reabre a tela de login usando um novo AuthService baseado em BD
+            SwingUtilities.invokeLater(() -> new LoginFrame(ctx, new DBAuthService(ctx)).setVisible(true));
         }
     }
 

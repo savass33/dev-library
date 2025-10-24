@@ -9,9 +9,7 @@ import model.Leitor;
 public class LeitorDAO {
     private final Connection conn;
 
-    public LeitorDAO(Connection conn) {
-        this.conn = conn;
-    }
+    public LeitorDAO(Connection conn) { this.conn = conn; }
 
     // Inserir um novo leitor (sem senha - usa DEFAULT '0000' ou será atualizada depois)
     public void inserir(Leitor leitor) throws SQLException {
@@ -38,6 +36,18 @@ public class LeitorDAO {
         }
     }
 
+    // Atualizar dados básicos do leitor (não altera matrícula)
+    public void atualizar(Leitor leitor) throws SQLException {
+        String sql = "UPDATE LEITOR SET nome=?, email=?, telefone=? WHERE id_leitor=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, leitor.getNome());
+            ps.setString(2, leitor.getEmail());
+            ps.setString(3, leitor.getTelefone());
+            ps.setInt(4, leitor.getId());
+            ps.executeUpdate();
+        }
+    }
+
     // Atualizar senha por matrícula
     public void atualizarSenhaPorMatricula(String matricula, String novaSenha) throws SQLException {
         String sql = "UPDATE LEITOR SET senha=? WHERE matricula=?";
@@ -57,7 +67,15 @@ public class LeitorDAO {
         }
     }
 
-    // Buscar por matrícula (não expõe senha no objeto, mantém seu modelo atual)
+    public boolean existsEmail(String email) throws SQLException {
+        String sql = "SELECT 1 FROM LEITOR WHERE email=? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        }
+    }
+
+    // Buscar por matrícula (não expõe senha no objeto)
     public Leitor buscarPorMatricula(String matricula) throws SQLException {
         String sql = "SELECT * FROM LEITOR WHERE matricula=?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -123,18 +141,4 @@ public class LeitorDAO {
             stmt.executeUpdate();
         }
     }
-
-    // Atualizar dados básicos do leitor (não altera matrícula)
-    public void atualizar(Leitor leitor) throws SQLException {
-        String sql = "UPDATE LEITOR SET nome=?, email=?, telefone=? WHERE id_leitor=?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, leitor.getNome());
-            ps.setString(2, leitor.getEmail());
-            ps.setString(3, leitor.getTelefone());
-            ps.setInt(4, leitor.getId());
-            ps.executeUpdate();
-        }
-    }
-
-
 }

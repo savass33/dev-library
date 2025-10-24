@@ -4,16 +4,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.Multa;
-import model.Emprestimo;
 
 public class MultaDAO {
-    private Connection conn;
+    private final Connection conn;
 
-    public MultaDAO(Connection conn) {
-        this.conn = conn;
-    }
+    public MultaDAO(Connection conn) { this.conn = conn; }
 
-    // Inserir nova multa
     public void inserir(Multa multa) throws SQLException {
         String sql = "INSERT INTO MULTA (fk_emprestimo, valor, pago, data_pagamento) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -25,15 +21,13 @@ public class MultaDAO {
         }
     }
 
-    // Listar todas as multas
     public List<Multa> listar() throws SQLException {
         List<Multa> multas = new ArrayList<>();
         String sql = "SELECT * FROM MULTA";
         try (Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             EmprestimoDAO emprestimoDAO = new EmprestimoDAO(conn);
-
             while (rs.next()) {
                 Multa m = new Multa(
                         rs.getInt("id_multa"),
@@ -47,7 +41,6 @@ public class MultaDAO {
         return multas;
     }
 
-    // Buscar multa por ID
     public Multa buscarPorId(int id) throws SQLException {
         String sql = "SELECT * FROM MULTA WHERE id_multa = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -55,7 +48,6 @@ public class MultaDAO {
             ResultSet rs = stmt.executeQuery();
 
             EmprestimoDAO emprestimoDAO = new EmprestimoDAO(conn);
-
             if (rs.next()) {
                 return new Multa(
                         rs.getInt("id_multa"),
@@ -68,7 +60,6 @@ public class MultaDAO {
         return null;
     }
 
-    // Excluir multa
     public void excluir(int id) throws SQLException {
         String sql = "DELETE FROM MULTA WHERE id_multa = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -77,7 +68,6 @@ public class MultaDAO {
         }
     }
 
-    // Atualizar pagamento da multa
     public void atualizarPagamento(int id, boolean pago, String dataPagamento) throws SQLException {
         String sql = "UPDATE MULTA SET pago = ?, data_pagamento = ? WHERE id_multa = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
