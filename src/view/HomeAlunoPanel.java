@@ -4,32 +4,34 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-/** Tela inicial para alunos: mensagem acolhedora e explicações. */
+/** Tela inicial acolhedora para o aluno (sem System.exit). */
 public class HomeAlunoPanel extends JPanel {
-    public HomeAlunoPanel() {
+
+    public HomeAlunoPanel(AppContext ctx) {
         setLayout(new BorderLayout());
-        setBorder(new EmptyBorder(24, 24, 24, 24));
+        setBorder(new EmptyBorder(16,16,16,16));
 
-        JLabel title = new JLabel("Bem-vindo(a) à DevLibrary!");
-        title.setFont(title.getFont().deriveFont(Font.BOLD, 22f));
+        var title = new JLabel("Bem-vindo(a) à sua biblioteca ✨");
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
 
-        JTextArea msg = new JTextArea("""
-                Esta é a sua área de aluno. Aqui você pode:
+        var msg = "<html><body style='width:560px;'>"
+                + "<b>O que você pode fazer por aqui?</b><br><br>"
+                + "• <b>Novo Empréstimo</b>: escolha um livro disponível e confirme o período.<br>"
+                + "• <b>Devolução</b>: finalize um empréstimo ativo informando a data de devolução.<br>"
+                + "• <b>Atrasados</b>: veja o que passou do prazo (apenas seus empréstimos).<br>"
+                + "• <b>Meus Empréstimos</b>: consulte seu histórico completo.<br><br>"
+                + "Precisa encerrar a sessão? Use <b>Conta → Sair</b> ou o botão <b>Sair</b> na lateral — "
+                + "você voltará para a tela de login, sem fechar o aplicativo."
+                + "</body></html>";
 
-                • Novo Empréstimo — escolha um livro disponível e confirme o empréstimo.
-                • Devolução — registre a devolução de um empréstimo em aberto.
-                • Histórico por Leitor — consulte todos os seus empréstimos anteriores.
-                • Atrasados — veja o que está com prazo vencido e evite multas.
+        var text = new JLabel(msg);
+        text.setFont(text.getFont().deriveFont(14f));
 
-                Dicas:
-                - Se tiver dúvidas, fale com um funcionário.
-                - Fique de olho nas datas para não gerar multa por atraso.
-                """);
-        msg.setEditable(false);
-        msg.setOpaque(false);
-        msg.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+        var north = new JPanel(new BorderLayout());
+        north.add(title, BorderLayout.NORTH);
+        north.add(Box.createVerticalStrut(10), BorderLayout.CENTER);
 
-        add(title, BorderLayout.NORTH);
-        add(msg, BorderLayout.CENTER);
+        add(north, BorderLayout.NORTH);
+        add(text, BorderLayout.CENTER);
     }
 }

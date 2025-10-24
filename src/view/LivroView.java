@@ -28,6 +28,10 @@ public class LivroView extends JPanel {
     public LivroView(AppContext ctx) {
         this.ctx = ctx;
 
+        // ====== MÁSCARAS ======
+        SwingMasks.digitsOnlyMax(tfIsbn, 13); // ISBN: só dígitos, máx 13
+        SwingMasks.digitsOnlyMax(tfAno, 4);   // Ano: só dígitos, máx 4
+
         setLayout(new BorderLayout());
         setBorder(new EmptyBorder(12, 12, 12, 12));
 
@@ -45,6 +49,15 @@ public class LivroView extends JPanel {
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), BorderLayout.CENTER);
         add(buildButtons(), BorderLayout.SOUTH);
 
+        // Larguras sugeridas (opcional)
+        table.getColumnModel().getColumn(0).setPreferredWidth(40);   // ID
+        table.getColumnModel().getColumn(1).setPreferredWidth(220);  // Título
+        table.getColumnModel().getColumn(2).setPreferredWidth(130);  // ISBN
+        table.getColumnModel().getColumn(3).setPreferredWidth(160);  // Autor
+        table.getColumnModel().getColumn(4).setPreferredWidth(60);   // Ano
+        table.getColumnModel().getColumn(5).setPreferredWidth(120);  // Gênero
+        table.getColumnModel().getColumn(6).setPreferredWidth(90);   // Status
+
         loadLivros();
     }
 
@@ -60,13 +73,13 @@ public class LivroView extends JPanel {
         gc.gridx = 0; gc.gridy = y; form.add(new JLabel("Título:"), gc);
         gc.gridx = 1; form.add(tfTitulo, gc); y++;
 
-        gc.gridx = 0; gc.gridy = y; form.add(new JLabel("ISBN:"), gc);
+        gc.gridx = 0; gc.gridy = y; form.add(new JLabel("ISBN (13 dígitos):"), gc);
         gc.gridx = 1; form.add(tfIsbn, gc); y++;
 
         gc.gridx = 0; gc.gridy = y; form.add(new JLabel("Autor:"), gc);
         gc.gridx = 1; form.add(tfAutor, gc); y++;
 
-        gc.gridx = 0; gc.gridy = y; form.add(new JLabel("Ano:"), gc);
+        gc.gridx = 0; gc.gridy = y; form.add(new JLabel("Ano (4 dígitos):"), gc);
         gc.gridx = 1; form.add(tfAno, gc); y++;
 
         gc.gridx = 0; gc.gridy = y; form.add(new JLabel("Gênero:"), gc);
@@ -105,7 +118,7 @@ public class LivroView extends JPanel {
                         l.getTitulo(),
                         l.getIsbn(),
                         l.getAutor(),
-                        l.getAnoPublicacao(),
+                        onlyYear(l.getAnoPublicacao()),
                         l.getGenero(),
                         l.getStatus() != null ? l.getStatus() : "Disponível"
                 });
@@ -123,9 +136,22 @@ public class LivroView extends JPanel {
         String ano    = tfAno.getText().trim();
         String genero = tfGenero.getText().trim();
 
+        // ====== VALIDAÇÕES ======
         if (titulo.isEmpty() || isbn.isEmpty() || autor.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Preencha Título, ISBN e Autor.",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!isbn.matches("\\d{13}")) {
+            JOptionPane.showMessageDialog(this, "ISBN deve conter exatamente 13 dígitos numéricos.",
+                    "Dados inválidos", JOptionPane.WARNING_MESSAGE);
+            tfIsbn.requestFocus();
+            return;
+        }
+        if (!ano.isEmpty() && !ano.matches("\\d{4}")) {
+            JOptionPane.showMessageDialog(this, "Ano deve conter exatamente 4 dígitos (ex.: 1999).",
+                    "Dados inválidos", JOptionPane.WARNING_MESSAGE);
+            tfAno.requestFocus();
             return;
         }
 
@@ -182,5 +208,12 @@ public class LivroView extends JPanel {
         tfAno.setText("");
         tfGenero.setText("");
         tfTitulo.requestFocus();
+    }
+
+    /** Mostra apenas os quatro primeiros dígitos (cobre "YYYY" e "YYYY-MM-DD"). */
+    private String onlyYear(String raw) {
+        if (raw == null || raw.isBlank()) return "";
+        if (raw.length() >= 4) return raw.substring(0, 4);
+        return raw;
     }
 }

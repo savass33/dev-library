@@ -113,14 +113,16 @@ public class LoginFrame extends JFrame {
 
         gc.gridx=0; gc.gridy=y; p.add(new JLabel("Nome:"), gc);
         JTextField tfNome = new JTextField(28);
+        view.SwingMasks.lettersAndSpacesOnly(tfNome);        // << máscara de nome
         gc.gridx=1; p.add(tfNome, gc); y++;
 
         gc.gridx=0; gc.gridy=y; p.add(new JLabel("E-mail:"), gc);
         JTextField tfEmail = new JTextField(28);
         gc.gridx=1; p.add(tfEmail, gc); y++;
 
-        gc.gridx=0; gc.gridy=y; p.add(new JLabel("Telefone:"), gc);
+        gc.gridx=0; gc.gridy=y; p.add(new JLabel("Telefone (9 dígitos):"), gc);
         JTextField tfTel = new JTextField(20);
+        view.SwingMasks.digitsOnlyMax(tfTel, 9);             // << só números, máx 9
         gc.gridx=1; p.add(tfTel, gc); y++;
 
         JButton bt = new JButton("Cadastrar");
@@ -130,7 +132,18 @@ public class LoginFrame extends JFrame {
             String nome = tfNome.getText().trim();
             String email = tfEmail.getText().trim();
             String tel = tfTel.getText().trim();
-            if (nome.isEmpty() || email.isEmpty()) { msg("Preencha nome e e-mail.", JOptionPane.WARNING_MESSAGE); return; }
+
+            // ===== Validações ====
+            if (nome.isEmpty() || nome.length() < 2 || !nome.matches("[\\p{L}][\\p{L} .'-]+")) {
+                msg("Informe um nome válido (somente letras).", JOptionPane.WARNING_MESSAGE); return;
+            }
+            if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                msg("E-mail inválido. Ex.: usuario@dominio.com", JOptionPane.WARNING_MESSAGE); return;
+            }
+            if (!tel.matches("\\d{9}")) {
+                msg("Telefone deve ter exatamente 9 dígitos (somente números).", JOptionPane.WARNING_MESSAGE); return;
+            }
+
             try {
                 AuthService.RegisterResult r = rbAluno.isSelected()
                         ? auth.cadastrarAluno(nome, email, tel)
@@ -148,6 +161,7 @@ public class LoginFrame extends JFrame {
 
         return p;
     }
+
 
     private void msg(String m, int type) {
         JOptionPane.showMessageDialog(this, m, type == JOptionPane.WARNING_MESSAGE ? "Aviso" :

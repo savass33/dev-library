@@ -22,7 +22,7 @@ public class Main {
         System.out.println("Iniciando aplicação...");
         testarConexao();
 
-        // ===== Seus testes existentes =====
+        // ===== Seus testes existentes (opcional) =====
         try (Connection conn = ConnectionDB.getConnection()) {
             testarFuncionario(conn);
             testarLeitor(conn);

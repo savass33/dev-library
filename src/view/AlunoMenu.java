@@ -6,118 +6,177 @@ import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+/** Menu principal para ALUNO. Não fecha o app: volta para tela de login ao sair. */
 public class AlunoMenu extends JFrame {
+
     private final AppContext ctx;
-    private final CardLayout card = new CardLayout();
-    private final JPanel center = new JPanel(card);
-    private final JLabel status = new JLabel("Pronto.");
-    private final JLabel clock = new JLabel();
+
+    private final CardLayout cardLayout = new CardLayout();
+    private final JPanel center = new JPanel(cardLayout);
+    private final JLabel statusLabel = new JLabel("Seja bem-vindo(a)!");
+    private final JLabel clockLabel = new JLabel();
+
+    private final Map<String, JComponent> cards = new LinkedHashMap<>();
 
     public AlunoMenu(AppContext ctx) {
         super("DevLibrary - Área do Aluno");
         this.ctx = ctx;
 
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        setMinimumSize(new Dimension(1000, 650));
+        // IMPORTANTE: não matar a JVM ao fechar
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        setMinimumSize(new Dimension(1000, 680));
         setLocationRelativeTo(null);
-        addWindowListener(new WindowAdapter() { @Override public void windowClosing(WindowEvent e) { confirmExit(); }});
+
+        addWindowListener(new WindowAdapter() {
+            @Override public void windowClosing(WindowEvent e) { confirmExit(); }
+        });
 
         setJMenuBar(buildMenuBar());
         setLayout(new BorderLayout());
+
         add(buildSidebar(), BorderLayout.WEST);
         add(buildCenter(), BorderLayout.CENTER);
-        add(buildStatus(), BorderLayout.SOUTH);
+        add(buildStatusBar(), BorderLayout.SOUTH);
 
         registerCards();
         pack();
     }
 
     private JMenuBar buildMenuBar() {
-        JMenuBar mb = new JMenuBar();
-        JMenu op = new JMenu("Operações");
-        op.add(item("Novo Empréstimo", () -> show("emprestimos")));
-        op.add(item("Devolução", () -> show("devolucoes")));
-        mb.add(op);
-        JMenu aj = new JMenu("Ajuda");
-        aj.add(item("Sobre", this::showAbout));
-        mb.add(Box.createHorizontalGlue());
-        mb.add(aj);
-        return mb;
+        JMenuBar bar = new JMenuBar();
+
+        JMenu oper = new JMenu("Operações");
+        oper.setMnemonic(KeyEvent.VK_O);
+        oper.add(menuItem("Novo Empréstimo", KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK),
+                () -> showCard("emprestimos")));
+        oper.add(menuItem("Devolução", KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_DOWN_MASK),
+                () -> showCard("devolucoes")));
+
+        JMenu rel = new JMenu("Consultas");
+        rel.setMnemonic(KeyEvent.VK_C);
+        rel.add(menuItem("Meus Empréstimos", null, () -> showCard("historico")));
+        rel.add(menuItem("Atrasados", null, () -> showCard("atrasados")));
+
+        JMenu conta = new JMenu("Conta");
+        conta.add(menuItem("Sair", KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), this::confirmExit));
+
+        bar.add(oper);
+        bar.add(rel);
+        bar.add(Box.createHorizontalGlue());
+        bar.add(conta);
+        return bar;
     }
 
     private JPanel buildSidebar() {
         JPanel side = new JPanel(new GridBagLayout());
         side.setPreferredSize(new Dimension(220, 0));
-        side.setBorder(new EmptyBorder(14, 12, 14, 12));
-        side.setBackground(new Color(245,247,250));
+        side.setBorder(new EmptyBorder(16, 12, 16, 12));
+        side.setBackground(new Color(245, 247, 250));
 
         GridBagConstraints gc = new GridBagConstraints();
-        gc.gridx=0; gc.gridy=0; gc.insets=new Insets(6,0,6,0);
-        gc.fill=GridBagConstraints.HORIZONTAL; gc.weightx=1;
+        gc.gridx=0; gc.gridy=0;
+        gc.insets = new Insets(6,0,6,0);
+        gc.fill = GridBagConstraints.HORIZONTAL; gc.weightx=1;
 
-        JLabel t = new JLabel("Atalhos (Aluno)");
-        t.setFont(t.getFont().deriveFont(Font.BOLD, 15f));
-        side.add(t, gc);
+        JLabel title = new JLabel("Atalhos do Aluno");
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        side.add(title, gc);
 
-        gc.gridy++; side.add(btn("Início", () -> show("home")), gc);
-        gc.gridy++; side.add(btn("Empréstimos", () -> show("emprestimos")), gc);
-        gc.gridy++; side.add(btn("Devoluções", () -> show("devolucoes")), gc);
+        gc.gridy++; side.add(primary("Início", () -> showCard("home")), gc);
+        gc.gridy++; side.add(primary("Novo Empréstimo", () -> showCard("emprestimos")), gc);
+        gc.gridy++; side.add(primary("Devolução", () -> showCard("devolucoes")), gc);
+        gc.gridy++; side.add(primary("Atrasados", () -> showCard("atrasados")), gc);
+        gc.gridy++; side.add(primary("Meus Empréstimos", () -> showCard("historico")), gc);
 
-        gc.gridy++; gc.weighty=1; side.add(Box.createVerticalGlue(), gc);
-        gc.gridy++; side.add(btnSec("Sair", this::confirmExit), gc);
+        gc.gridy++; gc.weighty = 1; side.add(Box.createVerticalGlue(), gc);
+
+        gc.gridy++; side.add(secondary("Sair", this::confirmExit), gc);
         return side;
     }
 
-    private JPanel buildCenter() { center.setBorder(new EmptyBorder(12,12,12,12)); return center; }
+    private JPanel buildCenter() {
+        center.setBorder(new EmptyBorder(12, 12, 12, 12));
+        return center;
+    }
 
-    private JPanel buildStatus() {
-        JPanel s = new JPanel(new BorderLayout());
-        s.setBorder(BorderFactory.createMatteBorder(1,0,0,0,new Color(220,220,220)));
-        status.setBorder(new EmptyBorder(6,10,6,10));
-        clock.setBorder(new EmptyBorder(6,10,6,10));
-        s.add(status, BorderLayout.WEST);
-        s.add(clock, BorderLayout.EAST);
-        Timer t = new Timer(1000, e -> clock.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
+    private JPanel buildStatusBar() {
+        JPanel status = new JPanel(new BorderLayout());
+        status.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
+        statusLabel.setBorder(new EmptyBorder(6, 10, 6, 10));
+        clockLabel.setBorder(new EmptyBorder(6, 10, 6, 10));
+        status.add(statusLabel, BorderLayout.WEST);
+        status.add(clockLabel, BorderLayout.EAST);
+
+        Timer t = new Timer(1000, e ->
+                clockLabel.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
         t.start();
-        return s;
+        return status;
     }
 
     private void registerCards() {
-        addCard("home", new HomePanel());
+        addCard("home", new HomeAlunoPanel(ctx));
         addCard("emprestimos", new EmprestimoView(ctx));
         addCard("devolucoes", new DevolucaoView(ctx));
-        show("home");
+        addCard("atrasados", new AtrasadosView(ctx));
+        addCard("historico", new HistoricoLeitorView(ctx));
+        showCard("home");
     }
 
-    private void addCard(String name, JComponent comp) { center.add(comp, name); }
-    private void show(String name) { card.show(center, name); status.setText("Tela: " + name); }
+    private void addCard(String name, JComponent comp) {
+        cards.put(name, comp);
+        center.add(comp, name);
+    }
 
-    private JMenuItem item(String text, Runnable r) { JMenuItem it = new JMenuItem(text); it.addActionListener(e -> r.run()); return it; }
-    private JButton btn(String text, Runnable r) { JButton b = new JButton(text); styleP(b); b.addActionListener(e -> r.run()); return b; }
-    private JButton btnSec(String text, Runnable r) { JButton b = new JButton(text); styleS(b); b.addActionListener(e -> r.run()); return b; }
-    private void styleP(AbstractButton b) {
+    private void showCard(String name) {
+        if (!cards.containsKey(name)) return;
+        // quando abre empréstimos, recarrega listas para refletir disponibilidades
+        if ("emprestimos".equals(name) && cards.get("emprestimos") instanceof EmprestimoView ev) {
+            ev.refresh();
+        }
+        cardLayout.show(center, name);
+        statusLabel.setText("Tela: " + name);
+    }
+
+    private JMenuItem menuItem(String text, KeyStroke ks, Runnable action) {
+        JMenuItem it = new JMenuItem(text);
+        if (ks != null) it.setAccelerator(ks);
+        it.addActionListener(e -> action.run());
+        return it;
+    }
+
+    private JButton primary(String text, Runnable r) {
+        JButton b = new JButton(text);
         b.setFocusPainted(false);
         b.setFont(b.getFont().deriveFont(Font.BOLD, 13f));
-        b.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(200,210,220)), new EmptyBorder(10,12,10,12)));
-        b.setBackground(Color.WHITE);
-    }
-    private void styleS(AbstractButton b) {
-        b.setFocusPainted(false);
-        b.setFont(b.getFont().deriveFont(12f));
-        b.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(220,220,220)), new EmptyBorder(8,10,8,10)));
-        b.setBackground(new Color(250,250,250));
+        b.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200,210,220)),
+                new EmptyBorder(10,12,10,12)
+        ));
+        b.addActionListener(e -> r.run());
+        return b;
     }
 
-    private void showAbout() {
-        JOptionPane.showMessageDialog(this,
-                "DevLibrary — Área do Aluno\nAcesso restrito a Empréstimos e Devoluções.",
-                "Sobre", JOptionPane.INFORMATION_MESSAGE);
+    private JButton secondary(String text, Runnable r) {
+        JButton b = new JButton(text);
+        b.setFocusPainted(false);
+        b.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220,220,220)),
+                new EmptyBorder(8,10,8,10)
+        ));
+        b.addActionListener(e -> r.run());
+        return b;
     }
 
     private void confirmExit() {
-        int opt = JOptionPane.showConfirmDialog(this, "Deseja sair?", "Sair",
+        int opt = JOptionPane.showConfirmDialog(this,
+                "Tem certeza que deseja sair?", "Sair",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (opt == JOptionPane.YES_OPTION) dispose();
+        if (opt == JOptionPane.YES_OPTION) {
+            // chama o mesmo fluxo usado pelo funcionário
+            ctx.logoutToLogin(this);
+        }
     }
 }

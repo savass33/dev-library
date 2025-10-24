@@ -9,11 +9,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// Views / Context
-// (como tudo está no mesmo pacote "view", não é necessário importar LoginFrame/DBAuthService)
+/** Menu principal (FUNCIONÁRIO) sem a aba de Autores. */
 public class MainMenu extends JFrame {
 
-    private final AppContext ctx; // contexto com Connection/DAOs/Services
+    private final AppContext ctx;
 
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel center = new JPanel(cardLayout);
@@ -50,11 +49,9 @@ public class MainMenu extends JFrame {
     private JMenuBar buildMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
-        // Cadastros
+        // Cadastros (sem Autores)
         JMenu cadastros = new JMenu("Cadastros");
         cadastros.setMnemonic(KeyEvent.VK_C);
-        cadastros.add(menuItem("Autores", KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK),
-                () -> showCard("autores")));
         cadastros.add(menuItem("Livros", KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK),
                 () -> showCard("livros")));
         cadastros.add(menuItem("Leitores", KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK),
@@ -107,7 +104,7 @@ public class MainMenu extends JFrame {
         side.add(title, gc);
 
         gc.gridy++; side.add(primaryButton("Início", () -> showCard("home")), gc);
-        gc.gridy++; side.add(primaryButton("Autores", () -> showCard("autores")), gc);
+        // (removido) Autores
         gc.gridy++; side.add(primaryButton("Livros", () -> showCard("livros")), gc);
         gc.gridy++; side.add(primaryButton("Leitores", () -> showCard("leitores")), gc);
         gc.gridy++; side.add(primaryButton("Empréstimos", () -> showCard("emprestimos")), gc);
@@ -134,7 +131,6 @@ public class MainMenu extends JFrame {
         status.add(statusLabel, BorderLayout.WEST);
         status.add(clockLabel, BorderLayout.EAST);
 
-        // Relógio
         Timer t = new Timer(1000, e ->
                 clockLabel.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
         t.setRepeats(true);
@@ -147,10 +143,7 @@ public class MainMenu extends JFrame {
 
     private void registerCards() {
         addCard("home", new HomePanel());
-        addCard("autores", new PlaceholderPanel(
-                "Autores",
-                "Gerencie autores da biblioteca.\n\nAções: Cadastrar, Listar, Atualizar, Remover."
-        ));
+        // (removido) addCard("autores", ...);
         addCard("livros", new LivroView(ctx));
         addCard("leitores", new LeitoresView(ctx));
 
@@ -170,7 +163,6 @@ public class MainMenu extends JFrame {
 
     private void showCard(String name) {
         if (!cards.containsKey(name)) return;
-        // Ao abrir a tela de empréstimos, garanta dados atualizados
         if ("emprestimos".equals(name)) {
             refreshEmprestimoLists();
         }
@@ -270,8 +262,9 @@ public class MainMenu extends JFrame {
 
             dispose();
 
-            // Reabre a tela de login usando um novo AuthService baseado em BD
-            SwingUtilities.invokeLater(() -> new LoginFrame(ctx, new DBAuthService(ctx)).setVisible(true));
+            // Reabre login (usa o Auth existente ou cria um novo se precisar)
+            if (ctx.auth == null) ctx.auth = new DBAuthService(ctx);
+            SwingUtilities.invokeLater(() -> new LoginFrame(ctx, ctx.auth).setVisible(true));
         }
     }
 

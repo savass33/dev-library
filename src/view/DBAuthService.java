@@ -34,9 +34,9 @@ public class DBAuthService implements AuthService {
 
     @Override
     public RegisterResult cadastrarAluno(String nome, String email, String telefone) throws Exception {
-        if (email == null || email.isBlank()) throw new IllegalArgumentException("Informe um e-mail.");
-        if (ctx.leitorDAO.existsEmail(email) || ctx.funcionarioDAO.existsEmail(email))
-            throw new IllegalArgumentException("E-mail já cadastrado.");
+        validarNome(nome);
+        validarEmailUnico(email);
+        validarTelefone(telefone);
 
         String matricula = gerarMatricula('0');
         String senha = gerarSenha4();
@@ -51,9 +51,9 @@ public class DBAuthService implements AuthService {
 
     @Override
     public RegisterResult cadastrarFuncionario(String nome, String email, String telefone) throws Exception {
-        if (email == null || email.isBlank()) throw new IllegalArgumentException("Informe um e-mail.");
-        if (ctx.leitorDAO.existsEmail(email) || ctx.funcionarioDAO.existsEmail(email))
-            throw new IllegalArgumentException("E-mail já cadastrado.");
+        validarNome(nome);
+        validarEmailUnico(email);
+        validarTelefone(telefone);
 
         String matricula = gerarMatricula('1');
         String senha = gerarSenha4();
@@ -65,6 +65,32 @@ public class DBAuthService implements AuthService {
             throw new Exception("Erro ao cadastrar funcionário: " + e.getMessage(), e);
         }
     }
+
+    /* ======= validações ======= */
+    private static final java.util.regex.Pattern EMAIL_RE =
+            java.util.regex.Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+    private void validarNome(String nome) {
+        if (nome == null || nome.isBlank() || nome.length() < 2 || !nome.matches("[\\p{L}][\\p{L} .'-]+"))
+            throw new IllegalArgumentException("Nome inválido. Use apenas letras.");
+    }
+
+    private void validarEmailUnico(String email) throws Exception {
+        if (email == null || !EMAIL_RE.matcher(email).matches())
+            throw new IllegalArgumentException("E-mail inválido. Ex.: usuario@dominio.com");
+        try {
+            if (ctx.leitorDAO.existsEmail(email) || ctx.funcionarioDAO.existsEmail(email))
+                throw new IllegalArgumentException("E-mail já cadastrado.");
+        } catch (SQLException e) {
+            throw new Exception("Falha ao verificar e-mail: " + e.getMessage(), e);
+        }
+    }
+
+    private void validarTelefone(String telefone) {
+        if (telefone == null || !telefone.matches("\\d{9}"))
+            throw new IllegalArgumentException("Telefone deve ter 9 dígitos (somente números).");
+    }
+
 
     // ---------- helpers ----------
     private boolean checkSenha(String table, String matricula, String senha) throws SQLException {
