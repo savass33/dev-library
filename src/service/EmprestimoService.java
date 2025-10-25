@@ -14,13 +14,15 @@ import model.Multa;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Serviço responsável pelas regras de negócio de empréstimo e devolução de livros.
- * Valida disponibilidade, limite de empréstimos por usuário, prazos, atualiza status do livro,
- * e delega persistência para os DAOs. Também cria multa se houver atraso na devolução.
+ * Serviço responsável pelas regras de negócio de empréstimo e devolução de
+ * livros.
+ * Valida disponibilidade, limite de empréstimos por usuário, prazos, atualiza
+ * status do livro,
+ * e delega persistência para os DAOs. Também cria multa se houver atraso na
+ * devolução.
  */
 public class EmprestimoService {
     private final EmprestimoDAO emprestimoDAO;
@@ -33,11 +35,11 @@ public class EmprestimoService {
 
     // Regras configuráveis
     private final int LIMITE_EMPRESTIMOS_POR_LEITOR = 5; // máximo simultâneo
-    private final int PRAZO_PADRAO_DIAS = 7;             // dias padrão
-    private final double TAXA_MULTA_DIARIA = 2.00;       // R$ por dia de atraso
+    private final int PRAZO_PADRAO_DIAS = 7; // dias padrão
+    private final double TAXA_MULTA_DIARIA = 2.00; // R$ por dia de atraso
 
     public EmprestimoService(EmprestimoDAO emprestimoDAO, LivroDAO livroDAO,
-                             LeitorDAO leitorDAO, FuncionarioDAO funcionarioDAO, MultaDAO multaDAO) {
+            LeitorDAO leitorDAO, FuncionarioDAO funcionarioDAO, MultaDAO multaDAO) {
         this.emprestimoDAO = emprestimoDAO;
         this.livroDAO = livroDAO;
         this.leitorDAO = leitorDAO;
@@ -50,22 +52,27 @@ public class EmprestimoService {
             throws ServiceException {
         try {
             Livro livro = livroDAO.buscarPorId(idLivro);
-            if (livro == null) throw new ServiceException("Livro não encontrado (id: " + idLivro + ")");
+            if (livro == null)
+                throw new ServiceException("Livro não encontrado (id: " + idLivro + ")");
             if (!"Disponível".equalsIgnoreCase(livro.getStatus()))
                 throw new ServiceException("Livro não está disponível (status: " + livro.getStatus() + ")");
 
             Leitor leitor = leitorDAO.buscarPorId(idLeitor);
-            if (leitor == null) throw new ServiceException("Leitor não encontrado.");
+            if (leitor == null)
+                throw new ServiceException("Leitor não encontrado.");
 
             Funcionario funcionario = funcionarioDAO.buscarPorId(idFuncionario);
-            if (funcionario == null) throw new ServiceException("Funcionário não encontrado.");
+            if (funcionario == null)
+                throw new ServiceException("Funcionário não encontrado.");
 
             // Verificar limite de empréstimos ativos do leitor
             long ativos = emprestimoDAO.listar().stream()
-                    .filter(e -> e.getLeitor() != null && e.getLeitor().getId() == idLeitor && e.getData_devolucao() == null)
+                    .filter(e -> e.getLeitor() != null && e.getLeitor().getId() == idLeitor
+                            && e.getData_devolucao() == null)
                     .count();
             if (ativos >= LIMITE_EMPRESTIMOS_POR_LEITOR)
-                throw new ServiceException("Leitor atingiu o limite de empréstimos ativos (" + LIMITE_EMPRESTIMOS_POR_LEITOR + ").");
+                throw new ServiceException(
+                        "Leitor atingiu o limite de empréstimos ativos (" + LIMITE_EMPRESTIMOS_POR_LEITOR + ").");
 
             LocalDate dataEmp = (dataEmprestimoStr == null || dataEmprestimoStr.isBlank())
                     ? LocalDate.now()
@@ -95,7 +102,8 @@ public class EmprestimoService {
     public void devolverLivro(int idEmprestimo, String dataDevolucaoStr) throws ServiceException {
         try {
             Emprestimo emprestimo = emprestimoDAO.buscarPorId(idEmprestimo);
-            if (emprestimo == null) throw new ServiceException("Empréstimo não encontrado (id: " + idEmprestimo + ")");
+            if (emprestimo == null)
+                throw new ServiceException("Empréstimo não encontrado (id: " + idEmprestimo + ")");
             if (emprestimo.getData_devolucao() != null)
                 throw new ServiceException("Empréstimo já devolvido.");
 
@@ -157,10 +165,12 @@ public class EmprestimoService {
     }
 
     public long calcularDiasAtraso(Emprestimo emprestimo) {
-        if (emprestimo == null) return 0;
+        if (emprestimo == null)
+            return 0;
         try {
             LocalDate prevista = LocalDate.parse(emprestimo.getData_prevista(), fmt);
-            LocalDate devolucao = emprestimo.getData_devolucao() == null ? LocalDate.now() : LocalDate.parse(emprestimo.getData_devolucao(), fmt);
+            LocalDate devolucao = emprestimo.getData_devolucao() == null ? LocalDate.now()
+                    : LocalDate.parse(emprestimo.getData_devolucao(), fmt);
             long dias = java.time.temporal.ChronoUnit.DAYS.between(prevista, devolucao);
             return Math.max(0, dias);
         } catch (Exception e) {
@@ -170,7 +180,12 @@ public class EmprestimoService {
 
     /** Exceção interna para erros do serviço. */
     public static class ServiceException extends RuntimeException {
-        public ServiceException(String message) { super(message); }
-        public ServiceException(String message, Throwable cause) { super(message, cause); }
+        public ServiceException(String message) {
+            super(message);
+        }
+
+        public ServiceException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

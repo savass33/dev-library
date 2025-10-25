@@ -1,6 +1,5 @@
 package view;
 
-import view.AppContext;
 import model.Emprestimo;
 import service.EmprestimoService;
 
@@ -15,12 +14,15 @@ public class AtrasadosView extends JPanel {
     private final EmprestimoService service;
 
     private final DefaultTableModel model = new DefaultTableModel(
-            new Object[]{"ID", "Livro", "Leitor", "Prevista", "Dias atraso"}, 0
-    ) {
-        @Override public boolean isCellEditable(int r, int c) { return false; }
+            new Object[] { "ID", "Livro", "Leitor", "Prevista", "Dias atraso" }, 0) {
+        @Override
+        public boolean isCellEditable(int r, int c) {
+            return false;
+        }
     };
     private final JTable table = new JTable(model);
 
+    @SuppressWarnings("unused")
     public AtrasadosView(AppContext ctx) {
         this.service = ctx.emprestimoService;
 
@@ -48,7 +50,7 @@ public class AtrasadosView extends JPanel {
             model.setRowCount(0);
             for (Emprestimo e : atrasados) {
                 long dias = service.calcularDiasAtraso(e);
-                model.addRow(new Object[]{
+                model.addRow(new Object[] {
                         e.getid(),
                         e.getLivro() != null ? e.getLivro().getTitulo() : "-",
                         e.getLeitor() != null ? e.getLeitor().getNome() : "-",
@@ -62,4 +64,3 @@ public class AtrasadosView extends JPanel {
         }
     }
 }
-

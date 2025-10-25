@@ -8,7 +8,9 @@ import model.Funcionario;
 public class FuncionarioDAO {
     private final Connection conn;
 
-    public FuncionarioDAO(Connection conn) { this.conn = conn; }
+    public FuncionarioDAO(Connection conn) {
+        this.conn = conn;
+    }
 
     // Inserir novo funcionário (sem senha - usa DEFAULT '0000')
     public void inserir(Funcionario funcionario) throws SQLException {
@@ -48,7 +50,9 @@ public class FuncionarioDAO {
         String sql = "SELECT 1 FROM FUNCIONARIO WHERE matricula=? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, matricula);
-            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
         }
     }
 
@@ -56,7 +60,9 @@ public class FuncionarioDAO {
         String sql = "SELECT 1 FROM FUNCIONARIO WHERE email=? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
         }
     }
 
@@ -71,8 +77,7 @@ public class FuncionarioDAO {
                             rs.getString("nome"),
                             rs.getString("email"),
                             rs.getString("telefone"),
-                            rs.getString("matricula")
-                    );
+                            rs.getString("matricula"));
                 }
                 return null;
             }
@@ -83,7 +88,7 @@ public class FuncionarioDAO {
         List<Funcionario> funcionarios = new ArrayList<>();
         String sql = "SELECT * FROM FUNCIONARIO";
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+                ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Funcionario func = new Funcionario(
                         rs.getInt("id_funcionario"),

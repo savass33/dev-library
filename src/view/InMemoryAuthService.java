@@ -1,7 +1,5 @@
 package view;
 
-import dao.FuncionarioDAO;
-import dao.LeitorDAO;
 import model.Funcionario;
 import model.Leitor;
 
@@ -15,12 +13,15 @@ public class InMemoryAuthService implements AuthService {
     private final AppContext ctx;
     private final Map<String, String> senhaPorMatricula = new HashMap<>();
 
-    public InMemoryAuthService(AppContext ctx) { this.ctx = ctx; }
+    public InMemoryAuthService(AppContext ctx) {
+        this.ctx = ctx;
+    }
 
     @Override
     public Role login(String matricula, String senha) throws Exception {
         String s = senhaPorMatricula.get(matricula);
-        if (s == null || !s.equals(senha)) throw new IllegalArgumentException("Credenciais inválidas.");
+        if (s == null || !s.equals(senha))
+            throw new IllegalArgumentException("Credenciais inválidas.");
         return matricula.startsWith("1") ? Role.FUNCIONARIO : Role.ALUNO;
     }
 
@@ -58,9 +59,12 @@ public class InMemoryAuthService implements AuthService {
             String mat = prefixo + String.format("%05d", r.nextInt(100000));
             boolean existe = ctx.leitorDAO.listar().stream().anyMatch(le -> mat.equals(le.getMatricula()))
                     || ctx.funcionarioDAO.listar().stream().anyMatch(fu -> mat.equals(fu.getMatricula()));
-            if (!existe) return mat;
+            if (!existe)
+                return mat;
         }
     }
 
-    private String gerarSenha4() { return String.format("%04d", new Random().nextInt(10000)); }
+    private String gerarSenha4() {
+        return String.format("%04d", new Random().nextInt(10000));
+    }
 }

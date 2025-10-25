@@ -9,7 +9,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Menu principal para ALUNO. Não fecha o app: volta para tela de login ao sair. */
+/**
+ * Menu principal para ALUNO. Não fecha o app: volta para tela de login ao sair.
+ */
 public class AlunoMenu extends JFrame {
 
     private final AppContext ctx;
@@ -31,7 +33,10 @@ public class AlunoMenu extends JFrame {
         setLocationRelativeTo(null);
 
         addWindowListener(new WindowAdapter() {
-            @Override public void windowClosing(WindowEvent e) { confirmExit(); }
+            @Override
+            public void windowClosing(WindowEvent e) {
+                confirmExit();
+            }
         });
 
         setJMenuBar(buildMenuBar());
@@ -61,7 +66,8 @@ public class AlunoMenu extends JFrame {
         rel.add(menuItem("Atrasados", null, () -> showCard("atrasados")));
 
         JMenu conta = new JMenu("Conta");
-        conta.add(menuItem("Sair", KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), this::confirmExit));
+        conta.add(
+                menuItem("Sair", KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), this::confirmExit));
 
         bar.add(oper);
         bar.add(rel);
@@ -77,23 +83,33 @@ public class AlunoMenu extends JFrame {
         side.setBackground(new Color(245, 247, 250));
 
         GridBagConstraints gc = new GridBagConstraints();
-        gc.gridx=0; gc.gridy=0;
-        gc.insets = new Insets(6,0,6,0);
-        gc.fill = GridBagConstraints.HORIZONTAL; gc.weightx=1;
+        gc.gridx = 0;
+        gc.gridy = 0;
+        gc.insets = new Insets(6, 0, 6, 0);
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.weightx = 1;
 
         JLabel title = new JLabel("Atalhos do Aluno");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
         side.add(title, gc);
 
-        gc.gridy++; side.add(primary("Início", () -> showCard("home")), gc);
-        gc.gridy++; side.add(primary("Novo Empréstimo", () -> showCard("emprestimos")), gc);
-        gc.gridy++; side.add(primary("Devolução", () -> showCard("devolucoes")), gc);
-        gc.gridy++; side.add(primary("Atrasados", () -> showCard("atrasados")), gc);
-        gc.gridy++; side.add(primary("Meus Empréstimos", () -> showCard("historico")), gc);
+        gc.gridy++;
+        side.add(primary("Início", () -> showCard("home")), gc);
+        gc.gridy++;
+        side.add(primary("Novo Empréstimo", () -> showCard("emprestimos")), gc);
+        gc.gridy++;
+        side.add(primary("Devolução", () -> showCard("devolucoes")), gc);
+        gc.gridy++;
+        side.add(primary("Atrasados", () -> showCard("atrasados")), gc);
+        gc.gridy++;
+        side.add(primary("Meus Empréstimos", () -> showCard("historico")), gc);
 
-        gc.gridy++; gc.weighty = 1; side.add(Box.createVerticalGlue(), gc);
+        gc.gridy++;
+        gc.weighty = 1;
+        side.add(Box.createVerticalGlue(), gc);
 
-        gc.gridy++; side.add(secondary("Sair", this::confirmExit), gc);
+        gc.gridy++;
+        side.add(secondary("Sair", this::confirmExit), gc);
         return side;
     }
 
@@ -102,6 +118,7 @@ public class AlunoMenu extends JFrame {
         return center;
     }
 
+    @SuppressWarnings("unused")
     private JPanel buildStatusBar() {
         JPanel status = new JPanel(new BorderLayout());
         status.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
@@ -110,8 +127,8 @@ public class AlunoMenu extends JFrame {
         status.add(statusLabel, BorderLayout.WEST);
         status.add(clockLabel, BorderLayout.EAST);
 
-        Timer t = new Timer(1000, e ->
-                clockLabel.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
+        Timer t = new Timer(1000, e -> clockLabel
+                .setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
         t.start();
         return status;
     }
@@ -131,7 +148,8 @@ public class AlunoMenu extends JFrame {
     }
 
     private void showCard(String name) {
-        if (!cards.containsKey(name)) return;
+        if (!cards.containsKey(name))
+            return;
         // quando abre empréstimos, recarrega listas para refletir disponibilidades
         if ("emprestimos".equals(name) && cards.get("emprestimos") instanceof EmprestimoView ev) {
             ev.refresh();
@@ -140,32 +158,34 @@ public class AlunoMenu extends JFrame {
         statusLabel.setText("Tela: " + name);
     }
 
+    @SuppressWarnings("unused")
     private JMenuItem menuItem(String text, KeyStroke ks, Runnable action) {
         JMenuItem it = new JMenuItem(text);
-        if (ks != null) it.setAccelerator(ks);
+        if (ks != null)
+            it.setAccelerator(ks);
         it.addActionListener(e -> action.run());
         return it;
     }
 
+    @SuppressWarnings("unused")
     private JButton primary(String text, Runnable r) {
         JButton b = new JButton(text);
         b.setFocusPainted(false);
         b.setFont(b.getFont().deriveFont(Font.BOLD, 13f));
         b.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200,210,220)),
-                new EmptyBorder(10,12,10,12)
-        ));
+                BorderFactory.createLineBorder(new Color(200, 210, 220)),
+                new EmptyBorder(10, 12, 10, 12)));
         b.addActionListener(e -> r.run());
         return b;
     }
 
+    @SuppressWarnings("unused")
     private JButton secondary(String text, Runnable r) {
         JButton b = new JButton(text);
         b.setFocusPainted(false);
         b.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220,220,220)),
-                new EmptyBorder(8,10,8,10)
-        ));
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                new EmptyBorder(8, 10, 8, 10)));
         b.addActionListener(e -> r.run());
         return b;
     }

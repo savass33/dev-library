@@ -19,13 +19,18 @@ public class DevolucaoView extends JPanel {
     private final EmprestimoService service;
 
     private final DefaultTableModel model = new DefaultTableModel(
-            new Object[]{"ID", "Livro", "Leitor", "Funcionário", "Empréstimo", "Prevista"}, 0
-    ) { @Override public boolean isCellEditable(int r, int c) { return false; } };
+            new Object[] { "ID", "Livro", "Leitor", "Funcionário", "Empréstimo", "Prevista" }, 0) {
+        @Override
+        public boolean isCellEditable(int r, int c) {
+            return false;
+        }
+    };
     private final JTable table = new JTable(model);
 
     private final JTextField tfDataDev = new JTextField(10); // yyyy-MM-dd
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
 
+    @SuppressWarnings("unused")
     public DevolucaoView(AppContext ctx) {
         this.ctx = ctx;
         this.service = ctx.emprestimoService;
@@ -98,21 +103,26 @@ public class DevolucaoView extends JPanel {
 
         String data = tfDataDev.getText().trim();
         if (!data.isEmpty()) {
-            try { LocalDate.parse(data, fmt); }
-            catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Data inválida (yyyy-MM-dd).", "Aviso", JOptionPane.WARNING_MESSAGE);
+            try {
+                LocalDate.parse(data, fmt);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Data inválida (yyyy-MM-dd).", "Aviso",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
-        } else data = null;
+        } else
+            data = null;
 
         try {
             service.devolverLivro(idEmp, data);
             JOptionPane.showMessageDialog(this, "Devolução registrada.", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             loadOpenLoans();
 
-            // avisa o menu principal para atualizar a tela de empréstimos (livros disponíveis)
+            // avisa o menu principal para atualizar a tela de empréstimos (livros
+            // disponíveis)
             java.awt.Window w = SwingUtilities.getWindowAncestor(this);
-            if (w instanceof MainMenu mm) mm.refreshEmprestimoLists();
+            if (w instanceof MainMenu mm)
+                mm.refreshEmprestimoLists();
         } catch (EmprestimoService.ServiceException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }

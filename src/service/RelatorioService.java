@@ -11,12 +11,13 @@ import model.Multa;
 
 import java.sql.SQLException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Serviço responsável por gerar relatórios e estatísticas sobre o funcionamento da biblioteca.
- * Os métodos retornam coleções e mapas prontos para conversão em tabelas/CSV/PDF pela camada de apresentação.
+ * Serviço responsável por gerar relatórios e estatísticas sobre o funcionamento
+ * da biblioteca.
+ * Os métodos retornam coleções e mapas prontos para conversão em
+ * tabelas/CSV/PDF pela camada de apresentação.
  */
 public class RelatorioService {
     private final EmprestimoDAO emprestimoDAO;
@@ -32,7 +33,8 @@ public class RelatorioService {
     }
 
     /**
-     * Retorna o histórico completo de empréstimos (ordenação decrescente pela data do empréstimo).
+     * Retorna o histórico completo de empréstimos (ordenação decrescente pela data
+     * do empréstimo).
      *
      * @return lista de empréstimos ordenada
      * @throws ServiceException em caso de erro
@@ -64,7 +66,8 @@ public class RelatorioService {
             Map<Integer, Livro> livrosMap = new HashMap<>();
             for (Integer id : counts.keySet()) {
                 Livro l = livroDAO.buscarPorId(id);
-                if (l != null) livrosMap.put(id, l);
+                if (l != null)
+                    livrosMap.put(id, l);
             }
 
             return counts.entrySet().stream()
@@ -79,7 +82,8 @@ public class RelatorioService {
     }
 
     /**
-     * Retorna os leitores com maior número de atrasos (baseado em multas ou empréstimos atrasados).
+     * Retorna os leitores com maior número de atrasos (baseado em multas ou
+     * empréstimos atrasados).
      *
      * @param topN número de leitores
      * @return lista de pares (Leitor, qtdAtrasos)
@@ -95,7 +99,8 @@ public class RelatorioService {
             Map<Integer, Leitor> leitoresMap = new HashMap<>();
             for (Integer id : contagem.keySet()) {
                 Leitor l = leitorDAO.buscarPorId(id);
-                if (l != null) leitoresMap.put(id, l);
+                if (l != null)
+                    leitoresMap.put(id, l);
             }
 
             return contagem.entrySet().stream()
@@ -110,7 +115,8 @@ public class RelatorioService {
     }
 
     /**
-     * Estatísticas simples: total de livros, total de leitores, total de empréstimos e multas pendentes.
+     * Estatísticas simples: total de livros, total de leitores, total de
+     * empréstimos e multas pendentes.
      *
      * @return mapa com chaves/valores de métricas
      * @throws ServiceException em caso de erro
@@ -137,7 +143,12 @@ public class RelatorioService {
      * Exceção interna para erros do serviço.
      */
     public static class ServiceException extends RuntimeException {
-        public ServiceException(String message) { super(message); }
-        public ServiceException(String message, Throwable cause) { super(message, cause); }
+        public ServiceException(String message) {
+            super(message);
+        }
+
+        public ServiceException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

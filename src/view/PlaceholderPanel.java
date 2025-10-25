@@ -5,7 +5,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * Placeholder genérico para cada seção, até integrar com formulários/tabelas reais.
+ * Placeholder genérico para cada seção, até integrar com formulários/tabelas
+ * reais.
  */
 public class PlaceholderPanel extends JPanel {
 

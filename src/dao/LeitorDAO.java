@@ -9,9 +9,12 @@ import model.Leitor;
 public class LeitorDAO {
     private final Connection conn;
 
-    public LeitorDAO(Connection conn) { this.conn = conn; }
+    public LeitorDAO(Connection conn) {
+        this.conn = conn;
+    }
 
-    // Inserir um novo leitor (sem senha - usa DEFAULT '0000' ou será atualizada depois)
+    // Inserir um novo leitor (sem senha - usa DEFAULT '0000' ou será atualizada
+    // depois)
     public void inserir(Leitor leitor) throws SQLException {
         String sql = "INSERT INTO LEITOR (nome, matricula, email, telefone) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -23,9 +26,27 @@ public class LeitorDAO {
         }
     }
 
+    // Exception personalizada
+    public class EmailJaExisteException extends Exception {
+        public EmailJaExisteException(String msg) {
+            super(msg);
+        }
+    }
+
     // Inserir leitor já definindo a senha (recomendado para cadastro via UI)
-    public void inserir(Leitor leitor, String senha) throws SQLException {
+    public void inserir(Leitor leitor, String senha) throws SQLException, EmailJaExisteException {
+        String verify = "SELECT * FROM LEITOR WHERE email = ?";
         String sql = "INSERT INTO LEITOR (nome, matricula, email, telefone, senha) VALUES (?, ?, ?, ?, ?)";
+
+        try (PreparedStatement stmtVerify = conn.prepareStatement(verify)) {
+            stmtVerify.setString(1, leitor.getEmail());
+            try (ResultSet rs = stmtVerify.executeQuery()) {
+                if (rs.next()) {
+                    throw new EmailJaExisteException("Já existe usuário com este e-mail: " + leitor.getEmail());
+                }
+            }
+        }
+
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, leitor.getNome());
             stmt.setString(2, leitor.getMatricula());
@@ -63,7 +84,9 @@ public class LeitorDAO {
         String sql = "SELECT 1 FROM LEITOR WHERE matricula=? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, matricula);
-            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
         }
     }
 
@@ -71,7 +94,9 @@ public class LeitorDAO {
         String sql = "SELECT 1 FROM LEITOR WHERE email=? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
         }
     }
 
@@ -100,7 +125,7 @@ public class LeitorDAO {
         List<Leitor> leitores = new ArrayList<>();
         String sql = "SELECT * FROM LEITOR";
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+                ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Leitor leitor = new Leitor();
                 leitor.setId(rs.getInt("id_leitor"));

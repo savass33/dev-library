@@ -9,9 +9,9 @@ public class HomeAlunoPanel extends JPanel {
 
     public HomeAlunoPanel(AppContext ctx) {
         setLayout(new BorderLayout());
-        setBorder(new EmptyBorder(16,16,16,16));
+        setBorder(new EmptyBorder(16, 16, 16, 16));
 
-        var title = new JLabel("Bem-vindo(a) à sua biblioteca ✨");
+        var title = new JLabel("Bem-vindo(a) à sua biblioteca!");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
 
         var msg = "<html><body style='width:560px;'>"

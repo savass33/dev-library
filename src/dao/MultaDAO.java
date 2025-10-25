@@ -8,7 +8,9 @@ import model.Multa;
 public class MultaDAO {
     private final Connection conn;
 
-    public MultaDAO(Connection conn) { this.conn = conn; }
+    public MultaDAO(Connection conn) {
+        this.conn = conn;
+    }
 
     public void inserir(Multa multa) throws SQLException {
         String sql = "INSERT INTO MULTA (fk_emprestimo, valor, pago, data_pagamento) VALUES (?, ?, ?, ?)";
@@ -25,7 +27,7 @@ public class MultaDAO {
         List<Multa> multas = new ArrayList<>();
         String sql = "SELECT * FROM MULTA";
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+                ResultSet rs = stmt.executeQuery(sql)) {
 
             EmprestimoDAO emprestimoDAO = new EmprestimoDAO(conn);
             while (rs.next()) {

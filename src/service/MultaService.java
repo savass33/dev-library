@@ -12,7 +12,8 @@ import java.util.List;
 
 /**
  * Serviço responsável pelo cálculo, geração e quitação de multas.
- * Integra-se diretamente com os registros de empréstimo (para determinar atraso).
+ * Integra-se diretamente com os registros de empréstimo (para determinar
+ * atraso).
  */
 public class MultaService {
     private final MultaDAO multaDAO;
@@ -40,7 +41,8 @@ public class MultaService {
     public Multa gerarOuAtualizarMultaPorAtraso(int idEmprestimo, double valorDiario) throws ServiceException {
         try {
             Emprestimo emp = emprestimoDAO.buscarPorId(idEmprestimo);
-            if (emp == null) throw new ServiceException("Empréstimo não encontrado (id: " + idEmprestimo + ")");
+            if (emp == null)
+                throw new ServiceException("Empréstimo não encontrado (id: " + idEmprestimo + ")");
 
             long diasAtraso = calcularDiasAtraso(emp);
             if (diasAtraso <= DIAS_ISENCAO) {
@@ -50,7 +52,8 @@ public class MultaService {
 
             double rate = (valorDiario > 0) ? valorDiario : VALOR_DIARIO_PADRAO;
             double valor = diasAtraso * rate;
-            if (valor > VALOR_MAXIMO_POR_MULTA) valor = VALOR_MAXIMO_POR_MULTA;
+            if (valor > VALOR_MAXIMO_POR_MULTA)
+                valor = VALOR_MAXIMO_POR_MULTA;
 
             // Verificar se já existe multa para esse empréstimo
             List<Multa> multas = multaDAO.listar();
@@ -58,12 +61,12 @@ public class MultaService {
                     .filter(m -> m.getEmprestimo() != null && m.getEmprestimo().getid() == idEmprestimo)
                     .findFirst().orElse(null);
 
-            String hojeStr = LocalDate.now().format(fmt);
             if (existente != null) {
                 existente.setValor(valor);
                 existente.setPago(false);
                 existente.setData_pagamento(null);
-                multaDAO.excluir(existente.getId()); // simplificamos atualizando: excluir + inserir (ou você pode criar update)
+                multaDAO.excluir(existente.getId()); // simplificamos atualizando: excluir + inserir (ou você pode criar
+                                                     // update)
                 Multa nova = new Multa(0, emp, valor, false, null);
                 multaDAO.inserir(nova);
                 return nova;
@@ -84,10 +87,12 @@ public class MultaService {
      * @return dias de atraso (>=0)
      */
     public long calcularDiasAtraso(Emprestimo emprestimo) {
-        if (emprestimo == null) return 0;
+        if (emprestimo == null)
+            return 0;
         try {
             LocalDate prevista = LocalDate.parse(emprestimo.getData_prevista(), fmt);
-            LocalDate devolucao = emprestimo.getData_devolucao() == null ? LocalDate.now() : LocalDate.parse(emprestimo.getData_devolucao(), fmt);
+            LocalDate devolucao = emprestimo.getData_devolucao() == null ? LocalDate.now()
+                    : LocalDate.parse(emprestimo.getData_devolucao(), fmt);
             long dias = java.time.temporal.ChronoUnit.DAYS.between(prevista, devolucao);
             return Math.max(0, dias - DIAS_ISENCAO);
         } catch (Exception e) {
@@ -98,14 +103,15 @@ public class MultaService {
     /**
      * Marca uma multa como paga e grava data de pagamento.
      *
-     * @param idMulta id da multa
+     * @param idMulta          id da multa
      * @param dataPagamentoStr data do pagamento (yyyy-MM-dd) ou null para hoje
      * @throws ServiceException em caso de erro
      */
     public void pagarMulta(int idMulta, String dataPagamentoStr) throws ServiceException {
         try {
             Multa m = multaDAO.buscarPorId(idMulta);
-            if (m == null) throw new ServiceException("Multa não encontrada (id: " + idMulta + ")");
+            if (m == null)
+                throw new ServiceException("Multa não encontrada (id: " + idMulta + ")");
             String data = (dataPagamentoStr == null || dataPagamentoStr.isBlank())
                     ? LocalDate.now().format(fmt)
                     : LocalDate.parse(dataPagamentoStr, fmt).format(fmt);
@@ -134,7 +140,12 @@ public class MultaService {
      * Exceção interna para erros do serviço.
      */
     public static class ServiceException extends RuntimeException {
-        public ServiceException(String message) { super(message); }
-        public ServiceException(String message, Throwable cause) { super(message, cause); }
+        public ServiceException(String message) {
+            super(message);
+        }
+
+        public ServiceException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

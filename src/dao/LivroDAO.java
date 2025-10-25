@@ -79,7 +79,6 @@ public class LivroDAO {
         }
     }
 
-
     // Remover livro por ID
     public void excluir(int id) throws SQLException {
         String sql = "DELETE FROM LIVRO WHERE id_livro = ?";

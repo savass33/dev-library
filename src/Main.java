@@ -47,7 +47,11 @@ public class Main {
 
             final Connection finalUiConn = uiConn;
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try { if (finalUiConn != null && !finalUiConn.isClosed()) finalUiConn.close(); } catch (Exception ignored) {}
+                try {
+                    if (finalUiConn != null && !finalUiConn.isClosed())
+                        finalUiConn.close();
+                } catch (Exception ignored) {
+                }
             }));
 
             SwingUtilities.invokeLater(() -> {
@@ -59,15 +63,23 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Erro ao abrir a UI:");
             e.printStackTrace();
-            try { if (uiConn != null) uiConn.close(); } catch (Exception ignored) {}
+            try {
+                if (uiConn != null)
+                    uiConn.close();
+            } catch (Exception ignored) {
+            }
         }
     }
 
     // ---------------- MÉTODOS DE TESTE ----------------
     private static void testarConexao() {
         try (Connection conn = ConnectionDB.getConnection()) {
-            if (conn != null) System.out.println("Conexão bem-sucedida!\n");
-            else { System.out.println("Falha na conexão.\n"); System.exit(0); }
+            if (conn != null)
+                System.out.println("Conexão bem-sucedida!\n");
+            else {
+                System.out.println("Falha na conexão.\n");
+                System.exit(0);
+            }
         } catch (SQLException e) {
             System.out.println("Erro ao testar conexão:");
             e.printStackTrace();
@@ -116,20 +128,18 @@ public class Main {
         Leitor leitor = leitorDAO.listar().get(0);
 
         Emprestimo emprestimo = new Emprestimo(
-                0, livro, funcionario, "2025-10-16", "2025-10-23", null, leitor
-        );
+                0, livro, funcionario, "2025-10-16", "2025-10-23", null, leitor);
         emprestimoDAO.inserir(emprestimo);
 
         List<Emprestimo> emprestimos = emprestimoDAO.listar();
         emprestimos.forEach(e -> System.out.println(
                 "ID: " + e.getid() +
-                ", Livro: " + e.getLivro().getTitulo() +
-                ", Leitor: " + e.getLeitor().getNome() +
-                ", Funcionário: " + e.getFuncionario().getNome() +
-                ", Data empréstimo: " + e.getData_emprestimo() +
-                ", Data prevista: " + e.getData_prevista() +
-                ", Data devolução: " + e.getData_devolucao()
-        ));
+                        ", Livro: " + e.getLivro().getTitulo() +
+                        ", Leitor: " + e.getLeitor().getNome() +
+                        ", Funcionário: " + e.getFuncionario().getNome() +
+                        ", Data empréstimo: " + e.getData_emprestimo() +
+                        ", Data prevista: " + e.getData_prevista() +
+                        ", Data devolução: " + e.getData_devolucao()));
         System.out.println();
     }
 
@@ -143,11 +153,10 @@ public class Main {
         List<Multa> multas = multaDAO.listar();
         multas.forEach(m -> System.out.println(
                 "ID: " + m.getId() +
-                ", Empréstimo ID: " + m.getEmprestimo().getid() +
-                ", Valor: " + m.getValor() +
-                ", Pago: " + m.isPago() +
-                ", Data pagamento: " + m.getData_pagamento()
-        ));
+                        ", Empréstimo ID: " + m.getEmprestimo().getid() +
+                        ", Valor: " + m.getValor() +
+                        ", Pago: " + m.isPago() +
+                        ", Data pagamento: " + m.getData_pagamento()));
         System.out.println();
     }
 
@@ -159,6 +168,7 @@ public class Main {
                     break;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }

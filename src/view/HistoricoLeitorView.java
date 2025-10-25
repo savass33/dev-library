@@ -1,6 +1,5 @@
 package view;
 
-import view.AppContext;
 import model.Emprestimo;
 import model.Leitor;
 import service.EmprestimoService;
@@ -20,12 +19,15 @@ public class HistoricoLeitorView extends JPanel {
     private final JComboBox<Leitor> cbLeitor = new JComboBox<>();
 
     private final DefaultTableModel model = new DefaultTableModel(
-            new Object[]{"ID", "Livro", "Empréstimo", "Prevista", "Devolução", "Status"}, 0
-    ) {
-        @Override public boolean isCellEditable(int r, int c) { return false; }
+            new Object[] { "ID", "Livro", "Empréstimo", "Prevista", "Devolução", "Status" }, 0) {
+        @Override
+        public boolean isCellEditable(int r, int c) {
+            return false;
+        }
     };
     private final JTable table = new JTable(model);
 
+    @SuppressWarnings("unused")
     public HistoricoLeitorView(AppContext ctx) {
         this.ctx = ctx;
         this.service = ctx.emprestimoService;
@@ -53,9 +55,12 @@ public class HistoricoLeitorView extends JPanel {
         add(new JScrollPane(table), BorderLayout.CENTER);
 
         cbLeitor.setRenderer(new DefaultListCellRenderer() {
-            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+                    boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Leitor le) setText("#" + le.getId() + " - " + le.getNome());
+                if (value instanceof Leitor le)
+                    setText("#" + le.getId() + " - " + le.getNome());
                 return this;
             }
         });
@@ -69,7 +74,8 @@ public class HistoricoLeitorView extends JPanel {
     private void loadLeitores() {
         try {
             cbLeitor.removeAllItems();
-            for (Leitor le : ctx.leitorDAO.listar()) cbLeitor.addItem(le);
+            for (Leitor le : ctx.leitorDAO.listar())
+                cbLeitor.addItem(le);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar leitores: " + e.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
@@ -87,7 +93,7 @@ public class HistoricoLeitorView extends JPanel {
             model.setRowCount(0);
             for (Emprestimo e : list) {
                 String status = e.getData_devolucao() == null ? "Em aberto" : "Devolvido";
-                model.addRow(new Object[]{
+                model.addRow(new Object[] {
                         e.getid(),
                         e.getLivro() != null ? e.getLivro().getTitulo() : "-",
                         e.getData_emprestimo(),

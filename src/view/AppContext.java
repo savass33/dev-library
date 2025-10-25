@@ -37,24 +37,28 @@ public class AppContext {
         this.multaDAO = new MultaDAO(conn);
 
         this.emprestimoService = new EmprestimoService(
-                this.emprestimoDAO, this.livroDAO, this.leitorDAO, this.funcionarioDAO, this.multaDAO
-        );
+                this.emprestimoDAO, this.livroDAO, this.leitorDAO, this.funcionarioDAO, this.multaDAO);
     }
 
-    /** Encerra a sessão e volta para a tela de login (funciona para aluno e funcionário). */
+    /**
+     * Encerra a sessão e volta para a tela de login (funciona para aluno e
+     * funcionário).
+     */
     public void logoutToLogin(Window from) {
         // limpa sessão sem depender de SessionInfo.clear()
         try {
             if (session != null) {
-                session.matricula   = null;
-                session.leitor      = null;
+                session.matricula = null;
+                session.leitor = null;
                 session.funcionario = null;
-                session.role        = null;
+                session.role = null;
             }
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+        }
 
         SwingUtilities.invokeLater(() -> {
-            if (from != null) from.dispose();
+            if (from != null)
+                from.dispose();
             // se auth não tiver sido setado por algum motivo, cria um de fallback
             AuthService useAuth = (auth != null) ? auth : new DBAuthService(this);
             new LoginFrame(this, useAuth).setVisible(true);

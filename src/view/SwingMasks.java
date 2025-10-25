@@ -27,7 +27,10 @@ public class SwingMasks {
     private static class DigitsFilter extends DocumentFilter {
         private final Pattern digits = Pattern.compile("\\d*");
         private final int max;
-        private DigitsFilter(int max) { this.max = max; }
+
+        private DigitsFilter(int max) {
+            this.max = max;
+        }
 
         @Override
         public void insertString(FilterBypass fb, int off, String str, AttributeSet a) throws BadLocationException {
@@ -52,12 +55,14 @@ public class SwingMasks {
 
         @Override
         public void insertString(FilterBypass fb, int off, String str, AttributeSet a) throws BadLocationException {
-            if (str != null && allowed.matcher(str).matches()) super.insertString(fb, off, str, a);
+            if (str != null && allowed.matcher(str).matches())
+                super.insertString(fb, off, str, a);
         }
 
         @Override
         public void replace(FilterBypass fb, int off, int len, String txt, AttributeSet a) throws BadLocationException {
-            if (txt != null && allowed.matcher(txt).matches()) super.replace(fb, off, len, txt, a);
+            if (txt != null && allowed.matcher(txt).matches())
+                super.replace(fb, off, len, txt, a);
         }
     }
 }

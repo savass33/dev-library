@@ -16,14 +16,13 @@ public class HomePanel extends JPanel {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 24f));
 
         JTextArea tips = new JTextArea(
-            "Dicas rápidas:\n" +
-            " • Use o menu lateral para navegar entre as seções.\n" +
-            " • Cadastre autores, livros e usuários antes de criar empréstimos.\n" +
-            " • Ao devolver, calcule multa se houver atraso e atualize o status do livro.\n\n" +
-            "Integração:\n" +
-            " • Conecte seus DAOs/Services às ações de cada tela.\n" +
-            " • Para listas e formulários, utilize JTable/JDialog conforme necessário.\n"
-        );
+                "Dicas rápidas:\n" +
+                        " • Use o menu lateral para navegar entre as seções.\n" +
+                        " • Cadastre autores, livros e usuários antes de criar empréstimos.\n" +
+                        " • Ao devolver, calcule multa se houver atraso e atualize o status do livro.\n\n" +
+                        "Integração:\n" +
+                        " • Conecte seus DAOs/Services às ações de cada tela.\n" +
+                        " • Para listas e formulários, utilize JTable/JDialog conforme necessário.\n");
         tips.setEditable(false);
         tips.setFont(tips.getFont().deriveFont(14f));
         tips.setLineWrap(true);
