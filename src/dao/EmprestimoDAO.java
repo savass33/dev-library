@@ -4,9 +4,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.Emprestimo;
-import model.Livro;
-import model.Leitor;
-import model.Funcionario;
 
 public class EmprestimoDAO {
     private Connection conn;
@@ -98,4 +95,16 @@ public class EmprestimoDAO {
             stmt.executeUpdate();
         }
     }
+
+    /** Atualiza somente a data prevista (yyyy-MM-dd) de um empréstimo. */
+    public void atualizarDataPrevista(int idEmprestimo, String novaDataPrevista) throws SQLException {
+        // Se no seu schema o nome da coluna for diferente, ajuste aqui.
+        String sql = "UPDATE EMPRESTIMO SET data_prevista = ? WHERE id_emprestimo = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, novaDataPrevista);
+            ps.setInt(2, idEmprestimo);
+            ps.executeUpdate();
+        }
+    }
+
 }

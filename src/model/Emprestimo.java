@@ -9,7 +9,8 @@ public class Emprestimo {
     private String data_prevista;
     private String data_devolucao;
 
-    public Emprestimo(int id, Livro livro, Funcionario funcionario, String data_emprestimo, String data_prevista, String data_devolucao, Leitor leitor) {
+    public Emprestimo(int id, Livro livro, Funcionario funcionario, String data_emprestimo, String data_prevista,
+            String data_devolucao, Leitor leitor) {
         this.id = id;
         this.livro = livro;
         this.leitor = leitor;
