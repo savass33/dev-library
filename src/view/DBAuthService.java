@@ -45,7 +45,7 @@ public class DBAuthService implements AuthService {
     public RegisterResult cadastrarAluno(String nome, String email, String telefone) throws Exception {
         validarNome(nome);
         validarEmailUnico(email);
-        validarTelefone(telefone);
+        validarTelefoneUnico(telefone);
 
         String matricula = gerarMatricula('0');
         String senha = gerarSenha4();
@@ -53,6 +53,8 @@ public class DBAuthService implements AuthService {
             Leitor novo = new Leitor(nome, email, telefone, matricula);
             ctx.leitorDAO.inserir(novo, senha);
             return new RegisterResult(nome, matricula, senha, Role.ALUNO);
+        } catch (dao.LeitorDAO.EmailJaExisteException ex) {
+            throw new IllegalArgumentException(ex.getMessage());
         } catch (SQLException e) {
             throw new Exception("Erro ao cadastrar aluno: " + e.getMessage(), e);
         }
@@ -62,7 +64,7 @@ public class DBAuthService implements AuthService {
     public RegisterResult cadastrarFuncionario(String nome, String email, String telefone) throws Exception {
         validarNome(nome);
         validarEmailUnico(email);
-        validarTelefone(telefone);
+        validarTelefoneUnico(telefone);
 
         String matricula = gerarMatricula('1');
         String senha = gerarSenha4();
@@ -95,9 +97,16 @@ public class DBAuthService implements AuthService {
         }
     }
 
-    private void validarTelefone(String telefone) {
+    /** Telefone: 9 dígitos e **único** entre leitor e funcionário. */
+    private void validarTelefoneUnico(String telefone) throws Exception {
         if (telefone == null || !telefone.matches("\\d{9}"))
             throw new IllegalArgumentException("Telefone deve ter 9 dígitos (somente números).");
+        try {
+            if (ctx.leitorDAO.existsTelefone(telefone) || ctx.funcionarioDAO.existsTelefone(telefone))
+                throw new IllegalArgumentException("Telefone já cadastrado.");
+        } catch (SQLException e) {
+            throw new Exception("Falha ao verificar telefone: " + e.getMessage(), e);
+        }
     }
 
     // ---------- helpers ----------

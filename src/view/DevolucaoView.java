@@ -13,22 +13,20 @@ import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-/** Tela para registrar devolução de empréstimos em aberto. */
+/** Tela para registrar devolução (UI BR; persistência ISO). */
 public class DevolucaoView extends JPanel {
     private final AppContext ctx;
     private final EmprestimoService service;
 
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[] { "ID", "Livro", "Leitor", "Funcionário", "Empréstimo", "Prevista" }, 0) {
-        @Override
-        public boolean isCellEditable(int r, int c) {
-            return false;
-        }
+        @Override public boolean isCellEditable(int r, int c) { return false; }
     };
     private final JTable table = new JTable(model);
 
-    private final JTextField tfDataDev = new JTextField(10); // yyyy-MM-dd
-    private final DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
+    private final JTextField tfDataDev = new JTextField(10); // dd/MM/yyyy
+    private final DateTimeFormatter fmtBR  = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final DateTimeFormatter fmtISO = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @SuppressWarnings("unused")
     public DevolucaoView(AppContext ctx) {
@@ -46,8 +44,8 @@ public class DevolucaoView extends JPanel {
         add(sp, BorderLayout.CENTER);
 
         JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        tfDataDev.setToolTipText("Deixe vazio para usar a data de hoje (yyyy-MM-dd).");
-        south.add(new JLabel("Data devolução (opcional):"));
+        tfDataDev.setToolTipText("Deixe vazio para usar a data de hoje (dd/MM/yyyy).");
+        south.add(new JLabel("Data devolução (dd/MM/yyyy, opcional):"));
         south.add(tfDataDev);
 
         JButton btRefresh = new JButton("Atualizar");
@@ -83,8 +81,8 @@ public class DevolucaoView extends JPanel {
                 row.add(e.getLivro() != null ? e.getLivro().getTitulo() : "-");
                 row.add(e.getLeitor() != null ? e.getLeitor().getNome() : "-");
                 row.add(e.getFuncionario() != null ? e.getFuncionario().getNome() : "-");
-                row.add(e.getData_emprestimo());
-                row.add(e.getData_prevista());
+                row.add(isoToBr(e.getData_emprestimo()));
+                row.add(isoToBr(e.getData_prevista()));
                 model.addRow(row);
             }
         } catch (Exception ex) {
@@ -101,30 +99,40 @@ public class DevolucaoView extends JPanel {
         }
         int idEmp = (int) model.getValueAt(row, 0);
 
-        String data = tfDataDev.getText().trim();
-        if (!data.isEmpty()) {
+        String dataISO = null;
+        String dataBR = tfDataDev.getText().trim();
+        if (!dataBR.isEmpty()) {
             try {
-                LocalDate.parse(data, fmt);
+                LocalDate d = LocalDate.parse(dataBR, fmtBR);
+                dataISO = d.format(fmtISO);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Data inválida (yyyy-MM-dd).", "Aviso",
+                JOptionPane.showMessageDialog(this, "Data inválida (dd/MM/yyyy).", "Aviso",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
-        } else
-            data = null;
+        }
 
         try {
-            service.devolverLivro(idEmp, data);
+            service.devolverLivro(idEmp, dataISO);
             JOptionPane.showMessageDialog(this, "Devolução registrada.", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             loadOpenLoans();
 
-            // avisa o menu principal para atualizar a tela de empréstimos (livros
-            // disponíveis)
+            // avisa o menu principal para atualizar a tela de empréstimos (livros disponíveis)
             java.awt.Window w = SwingUtilities.getWindowAncestor(this);
-            if (w instanceof MainMenu mm)
-                mm.refreshEmprestimoLists();
+            if (w instanceof MainMenu mm) mm.refreshEmprestimoLists();
         } catch (EmprestimoService.ServiceException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /* Helpers */
+    private String isoToBr(String iso) {
+        try {
+            if (iso == null || iso.isBlank()) return "-";
+            LocalDate d = LocalDate.parse(iso, fmtISO);
+            return d.format(fmtBR);
+        } catch (Exception e) {
+            return iso != null ? iso : "-";
         }
     }
 }

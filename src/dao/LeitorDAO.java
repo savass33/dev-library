@@ -13,8 +13,7 @@ public class LeitorDAO {
         this.conn = conn;
     }
 
-    // Inserir um novo leitor (sem senha - usa DEFAULT '0000' ou será atualizada
-    // depois)
+    // Inserir um novo leitor (sem senha - usa DEFAULT '0000' ou será atualizada depois)
     public void inserir(Leitor leitor) throws SQLException {
         String sql = "INSERT INTO LEITOR (nome, matricula, email, telefone) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -26,16 +25,15 @@ public class LeitorDAO {
         }
     }
 
-    // Exception personalizada
+    // Exception personalizada para e-mail duplicado
     public class EmailJaExisteException extends Exception {
-        public EmailJaExisteException(String msg) {
-            super(msg);
-        }
+        public EmailJaExisteException(String msg) { super(msg); }
     }
 
     // Inserir leitor já definindo a senha (recomendado para cadastro via UI)
     public void inserir(Leitor leitor, String senha) throws SQLException, EmailJaExisteException {
-        String verify = "SELECT * FROM LEITOR WHERE email = ?";
+        String verify = "SELECT 1 FROM LEITOR WHERE email = ? LIMIT 1";
+        String verifyTel = "SELECT 1 FROM LEITOR WHERE telefone = ? LIMIT 1";
         String sql = "INSERT INTO LEITOR (nome, matricula, email, telefone, senha) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmtVerify = conn.prepareStatement(verify)) {
@@ -44,6 +42,13 @@ public class LeitorDAO {
                 if (rs.next()) {
                     throw new EmailJaExisteException("Já existe usuário com este e-mail: " + leitor.getEmail());
                 }
+            }
+        }
+        // (garantia intra-tabela; unicidade cruzada é validada no serviço)
+        try (PreparedStatement stTel = conn.prepareStatement(verifyTel)) {
+            stTel.setString(1, leitor.getTelefone());
+            try (ResultSet rs = stTel.executeQuery()) {
+                if (rs.next()) throw new SQLException("Telefone já cadastrado para outro leitor.");
             }
         }
 
@@ -84,9 +89,7 @@ public class LeitorDAO {
         String sql = "SELECT 1 FROM LEITOR WHERE matricula=? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, matricula);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
         }
     }
 
@@ -94,9 +97,36 @@ public class LeitorDAO {
         String sql = "SELECT 1 FROM LEITOR WHERE email=? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        }
+    }
+
+    /** Existe e-mail em outro leitor (exclui um id específico)? */
+    public boolean existsEmailForOtherId(int idLeitor, String email) throws SQLException {
+        String sql = "SELECT 1 FROM LEITOR WHERE email=? AND id_leitor<>? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setInt(2, idLeitor);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        }
+    }
+
+    /** Existe telefone em LEITOR? */
+    public boolean existsTelefone(String telefone) throws SQLException {
+        String sql = "SELECT 1 FROM LEITOR WHERE telefone=? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, telefone);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        }
+    }
+
+    /** Existe telefone em outro leitor (exclui um id específico)? */
+    public boolean existsTelefoneForOtherId(int idLeitor, String telefone) throws SQLException {
+        String sql = "SELECT 1 FROM LEITOR WHERE telefone=? AND id_leitor<>? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, telefone);
+            ps.setInt(2, idLeitor);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
         }
     }
 
@@ -125,7 +155,7 @@ public class LeitorDAO {
         List<Leitor> leitores = new ArrayList<>();
         String sql = "SELECT * FROM LEITOR";
         try (Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Leitor leitor = new Leitor();
                 leitor.setId(rs.getInt("id_leitor"));

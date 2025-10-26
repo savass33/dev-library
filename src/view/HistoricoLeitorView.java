@@ -9,21 +9,26 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-/** Mostra histórico de empréstimos de um leitor. */
+/** Mostra histórico de empréstimos (UI BR; aluno vê só os próprios). */
 public class HistoricoLeitorView extends JPanel {
     private final AppContext ctx;
     private final EmprestimoService service;
 
     private final JComboBox<Leitor> cbLeitor = new JComboBox<>();
+    private final JLabel lbLeitor = new JLabel("Leitor:");
+    private final JButton btBuscar = new JButton("Buscar");
+    private final JButton btAtualizar = new JButton("Atualizar leitores");
+
+    private final DateTimeFormatter fmtBR  = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final DateTimeFormatter fmtISO = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[] { "ID", "Livro", "Empréstimo", "Prevista", "Devolução", "Status" }, 0) {
-        @Override
-        public boolean isCellEditable(int r, int c) {
-            return false;
-        }
+        @Override public boolean isCellEditable(int r, int c) { return false; }
     };
     private final JTable table = new JTable(model);
 
@@ -35,18 +40,20 @@ public class HistoricoLeitorView extends JPanel {
         setLayout(new BorderLayout());
         setBorder(new EmptyBorder(12, 12, 12, 12));
 
-        JLabel title = new JLabel("Histórico de Empréstimos por Leitor");
+        String titulo = (ctx.session != null && ctx.session.isAluno())
+                ? "Meus Empréstimos"
+                : "Histórico de Empréstimos por Leitor";
+
+        JLabel title = new JLabel(titulo);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
 
         JPanel north = new JPanel(new BorderLayout(8, 8));
         north.add(title, BorderLayout.NORTH);
 
         JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filtros.add(new JLabel("Leitor:"));
+        filtros.add(lbLeitor);
         filtros.add(cbLeitor);
-        JButton btBuscar = new JButton("Buscar");
         filtros.add(btBuscar);
-        JButton btAtualizar = new JButton("Atualizar leitores");
         filtros.add(btAtualizar);
 
         north.add(filtros, BorderLayout.SOUTH);
@@ -57,10 +64,9 @@ public class HistoricoLeitorView extends JPanel {
         cbLeitor.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-                    boolean cellHasFocus) {
+                                                          boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Leitor le)
-                    setText("#" + le.getId() + " - " + le.getNome());
+                if (value instanceof Leitor le) setText("#" + le.getId() + " - " + le.getNome());
                 return this;
             }
         });
@@ -68,14 +74,24 @@ public class HistoricoLeitorView extends JPanel {
         btAtualizar.addActionListener(e -> loadLeitores());
         btBuscar.addActionListener(e -> loadHistorico());
 
-        loadLeitores();
+        if (ctx.session != null && ctx.session.isAluno() && ctx.session.leitor != null) {
+            // Aluno: trava no próprio leitor e esconde botões
+            cbLeitor.removeAllItems();
+            cbLeitor.addItem(ctx.session.leitor);
+            cbLeitor.setEnabled(false);
+            lbLeitor.setText("Leitor (sua conta):");
+            btBuscar.setVisible(false);
+            btAtualizar.setVisible(false);
+            loadHistorico();
+        } else {
+            loadLeitores();
+        }
     }
 
     private void loadLeitores() {
         try {
             cbLeitor.removeAllItems();
-            for (Leitor le : ctx.leitorDAO.listar())
-                cbLeitor.addItem(le);
+            for (Leitor le : ctx.leitorDAO.listar()) cbLeitor.addItem(le);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar leitores: " + e.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
@@ -84,10 +100,23 @@ public class HistoricoLeitorView extends JPanel {
 
     private void loadHistorico() {
         Leitor le = (Leitor) cbLeitor.getSelectedItem();
+        if ((le == null) && ctx.session != null && ctx.session.isAluno()) {
+            le = ctx.session.leitor;
+            if (le == null) {
+                JOptionPane.showMessageDialog(this, "Sessão de aluno sem leitor associado.",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            cbLeitor.removeAllItems();
+            cbLeitor.addItem(le);
+            cbLeitor.setEnabled(false);
+        }
+
         if (le == null) {
             JOptionPane.showMessageDialog(this, "Selecione um leitor.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
+
         try {
             List<Emprestimo> list = service.historicoDeLeitor(le.getId());
             model.setRowCount(0);
@@ -96,15 +125,25 @@ public class HistoricoLeitorView extends JPanel {
                 model.addRow(new Object[] {
                         e.getid(),
                         e.getLivro() != null ? e.getLivro().getTitulo() : "-",
-                        e.getData_emprestimo(),
-                        e.getData_prevista(),
-                        e.getData_devolucao() != null ? e.getData_devolucao() : "-",
+                        isoToBr(e.getData_emprestimo()),
+                        isoToBr(e.getData_prevista()),
+                        e.getData_devolucao() != null ? isoToBr(e.getData_devolucao()) : "-",
                         status
                 });
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao buscar histórico: " + e.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String isoToBr(String iso) {
+        try {
+            if (iso == null || iso.isBlank()) return "-";
+            LocalDate d = LocalDate.parse(iso, fmtISO);
+            return d.format(fmtBR);
+        } catch (Exception e) {
+            return iso != null ? iso : "-";
         }
     }
 }

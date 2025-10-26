@@ -50,9 +50,7 @@ public class FuncionarioDAO {
         String sql = "SELECT 1 FROM FUNCIONARIO WHERE matricula=? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, matricula);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
         }
     }
 
@@ -60,9 +58,26 @@ public class FuncionarioDAO {
         String sql = "SELECT 1 FROM FUNCIONARIO WHERE email=? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        }
+    }
+
+    /** Existe telefone em FUNCIONARIO? */
+    public boolean existsTelefone(String telefone) throws SQLException {
+        String sql = "SELECT 1 FROM FUNCIONARIO WHERE telefone=? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, telefone);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        }
+    }
+
+    /** Existe telefone em outro funcionário (exclui um id)? */
+    public boolean existsTelefoneForOtherId(int idFuncionario, String telefone) throws SQLException {
+        String sql = "SELECT 1 FROM FUNCIONARIO WHERE telefone=? AND id_funcionario<>? LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, telefone);
+            ps.setInt(2, idFuncionario);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
         }
     }
 
@@ -88,7 +103,7 @@ public class FuncionarioDAO {
         List<Funcionario> funcionarios = new ArrayList<>();
         String sql = "SELECT * FROM FUNCIONARIO";
         try (Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Funcionario func = new Funcionario(
                         rs.getInt("id_funcionario"),

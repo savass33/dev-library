@@ -10,7 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Menu principal para ALUNO. Não fecha o app: volta para tela de login ao sair.
+ * Menu principal para ALUNO, sem barra de menus no topo.
+ * Ao sair, NÃO encerra a aplicação: volta para a tela de login.
  */
 public class AlunoMenu extends JFrame {
 
@@ -27,19 +28,16 @@ public class AlunoMenu extends JFrame {
         super("DevLibrary - Área do Aluno");
         this.ctx = ctx;
 
-        // IMPORTANTE: não matar a JVM ao fechar
+        // Não matar a JVM ao fechar
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         setMinimumSize(new Dimension(1000, 680));
         setLocationRelativeTo(null);
 
         addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                confirmExit();
-            }
+            @Override public void windowClosing(WindowEvent e) { confirmExit(); }
         });
 
-        setJMenuBar(buildMenuBar());
+        // (Removido) setJMenuBar(buildMenuBar());
         setLayout(new BorderLayout());
 
         add(buildSidebar(), BorderLayout.WEST);
@@ -50,32 +48,6 @@ public class AlunoMenu extends JFrame {
         pack();
     }
 
-    private JMenuBar buildMenuBar() {
-        JMenuBar bar = new JMenuBar();
-
-        JMenu oper = new JMenu("Operações");
-        oper.setMnemonic(KeyEvent.VK_O);
-        oper.add(menuItem("Novo Empréstimo", KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK),
-                () -> showCard("emprestimos")));
-        oper.add(menuItem("Devolução", KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_DOWN_MASK),
-                () -> showCard("devolucoes")));
-
-        JMenu rel = new JMenu("Consultas");
-        rel.setMnemonic(KeyEvent.VK_C);
-        rel.add(menuItem("Meus Empréstimos", null, () -> showCard("historico")));
-        rel.add(menuItem("Atrasados", null, () -> showCard("atrasados")));
-
-        JMenu conta = new JMenu("Conta");
-        conta.add(
-                menuItem("Sair", KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK), this::confirmExit));
-
-        bar.add(oper);
-        bar.add(rel);
-        bar.add(Box.createHorizontalGlue());
-        bar.add(conta);
-        return bar;
-    }
-
     private JPanel buildSidebar() {
         JPanel side = new JPanel(new GridBagLayout());
         side.setPreferredSize(new Dimension(220, 0));
@@ -83,8 +55,7 @@ public class AlunoMenu extends JFrame {
         side.setBackground(new Color(245, 247, 250));
 
         GridBagConstraints gc = new GridBagConstraints();
-        gc.gridx = 0;
-        gc.gridy = 0;
+        gc.gridx = 0; gc.gridy = 0;
         gc.insets = new Insets(6, 0, 6, 0);
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.weightx = 1;
@@ -93,23 +64,15 @@ public class AlunoMenu extends JFrame {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
         side.add(title, gc);
 
-        gc.gridy++;
-        side.add(primary("Início", () -> showCard("home")), gc);
-        gc.gridy++;
-        side.add(primary("Novo Empréstimo", () -> showCard("emprestimos")), gc);
-        gc.gridy++;
-        side.add(primary("Devolução", () -> showCard("devolucoes")), gc);
-        gc.gridy++;
-        side.add(primary("Atrasados", () -> showCard("atrasados")), gc);
-        gc.gridy++;
-        side.add(primary("Meus Empréstimos", () -> showCard("historico")), gc);
+        gc.gridy++; side.add(primary("Início", () -> showCard("home")), gc);
+        gc.gridy++; side.add(primary("Novo Empréstimo", () -> showCard("emprestimos")), gc);
+        gc.gridy++; side.add(primary("Devolução", () -> showCard("devolucoes")), gc);
+        gc.gridy++; side.add(primary("Atrasados", () -> showCard("atrasados")), gc);
+        gc.gridy++; side.add(primary("Meus Empréstimos", () -> showCard("historico")), gc);
 
-        gc.gridy++;
-        gc.weighty = 1;
-        side.add(Box.createVerticalGlue(), gc);
+        gc.gridy++; gc.weighty = 1; side.add(Box.createVerticalGlue(), gc);
 
-        gc.gridy++;
-        side.add(secondary("Sair", this::confirmExit), gc);
+        gc.gridy++; side.add(secondary("Sair", this::confirmExit), gc);
         return side;
     }
 
@@ -118,7 +81,6 @@ public class AlunoMenu extends JFrame {
         return center;
     }
 
-    @SuppressWarnings("unused")
     private JPanel buildStatusBar() {
         JPanel status = new JPanel(new BorderLayout());
         status.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
@@ -127,8 +89,8 @@ public class AlunoMenu extends JFrame {
         status.add(statusLabel, BorderLayout.WEST);
         status.add(clockLabel, BorderLayout.EAST);
 
-        Timer t = new Timer(1000, e -> clockLabel
-                .setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
+        Timer t = new Timer(1000, e ->
+                clockLabel.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
         t.start();
         return status;
     }
@@ -148,9 +110,8 @@ public class AlunoMenu extends JFrame {
     }
 
     private void showCard(String name) {
-        if (!cards.containsKey(name))
-            return;
-        // quando abre empréstimos, recarrega listas para refletir disponibilidades
+        if (!cards.containsKey(name)) return;
+        // ao abrir empréstimos, recarrega listas para refletir disponibilidades
         if ("emprestimos".equals(name) && cards.get("emprestimos") instanceof EmprestimoView ev) {
             ev.refresh();
         }
@@ -158,16 +119,6 @@ public class AlunoMenu extends JFrame {
         statusLabel.setText("Tela: " + name);
     }
 
-    @SuppressWarnings("unused")
-    private JMenuItem menuItem(String text, KeyStroke ks, Runnable action) {
-        JMenuItem it = new JMenuItem(text);
-        if (ks != null)
-            it.setAccelerator(ks);
-        it.addActionListener(e -> action.run());
-        return it;
-    }
-
-    @SuppressWarnings("unused")
     private JButton primary(String text, Runnable r) {
         JButton b = new JButton(text);
         b.setFocusPainted(false);
@@ -179,7 +130,6 @@ public class AlunoMenu extends JFrame {
         return b;
     }
 
-    @SuppressWarnings("unused")
     private JButton secondary(String text, Runnable r) {
         JButton b = new JButton(text);
         b.setFocusPainted(false);
@@ -195,8 +145,20 @@ public class AlunoMenu extends JFrame {
                 "Tem certeza que deseja sair?", "Sair",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (opt == JOptionPane.YES_OPTION) {
-            // chama o mesmo fluxo usado pelo funcionário
-            ctx.logoutToLogin(this);
+            // limpa sessão e volta ao login (sem encerrar a aplicação)
+            try {
+                if (ctx.session != null) {
+                    ctx.session.matricula = null;
+                    ctx.session.funcionario = null;
+                    ctx.session.leitor = null;
+                    ctx.session.role = null;
+                }
+            } catch (Throwable ignored) {}
+
+            dispose();
+
+            if (ctx.auth == null) ctx.auth = new DBAuthService(ctx);
+            SwingUtilities.invokeLater(() -> new LoginFrame(ctx, ctx.auth).setVisible(true));
         }
     }
 }

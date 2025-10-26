@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Tela para criar novo empréstimo (com escolha de data e data prevista). */
+/** Tela para criar novo empréstimo (UI BR; persistência ISO). */
 public class EmprestimoView extends JPanel {
     private final AppContext ctx;
     private final EmprestimoService service;
@@ -21,10 +21,12 @@ public class EmprestimoView extends JPanel {
     private final JComboBox<Leitor> cbLeitor = new JComboBox<>();
     private final JComboBox<Funcionario> cbFuncionario = new JComboBox<>();
 
-    private final JTextField tfDataEmprestimo = new JTextField(10); // yyyy-MM-dd
-    private final JTextField tfDataPrevista = new JTextField(10); // yyyy-MM-dd
+    // Campos no padrão BR para o usuário
+    private final JTextField tfDataEmprestimo = new JTextField(10); // dd/MM/yyyy
+    private final JTextField tfDataPrevista   = new JTextField(10); // dd/MM/yyyy
 
-    private final DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
+    private final DateTimeFormatter fmtBR  = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final DateTimeFormatter fmtISO = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @SuppressWarnings("unused")
     public EmprestimoView(AppContext ctx) {
@@ -42,59 +44,36 @@ public class EmprestimoView extends JPanel {
 
         JLabel title = new JLabel("Novo Empréstimo");
         title.setFont(title.getFont().deriveFont(Font.BOLD, 20f));
-        gc.gridx = 0;
-        gc.gridy = y++;
-        gc.gridwidth = 3;
+        gc.gridx = 0; gc.gridy = y++; gc.gridwidth = 3;
         add(title, gc);
         gc.gridwidth = 1;
 
         // Livro
-        gc.gridx = 0;
-        gc.gridy = y;
-        add(new JLabel("Livro (disponível):"), gc);
-        gc.gridx = 1;
-        add(cbLivro, gc);
-        y++;
+        gc.gridx = 0; gc.gridy = y; add(new JLabel("Livro (disponível):"), gc);
+        gc.gridx = 1; add(cbLivro, gc); y++;
 
         // Leitor
-        gc.gridx = 0;
-        gc.gridy = y;
-        add(new JLabel("Leitor:"), gc);
-        gc.gridx = 1;
-        add(cbLeitor, gc);
-        y++;
+        gc.gridx = 0; gc.gridy = y; add(new JLabel("Leitor:"), gc);
+        gc.gridx = 1; add(cbLeitor, gc); y++;
 
         // Funcionário
-        gc.gridx = 0;
-        gc.gridy = y;
-        add(new JLabel("Funcionário:"), gc);
-        gc.gridx = 1;
-        add(cbFuncionario, gc);
-        y++;
+        gc.gridx = 0; gc.gridy = y; add(new JLabel("Funcionário:"), gc);
+        gc.gridx = 1; add(cbFuncionario, gc); y++;
 
-        // Data empréstimo + botão Hoje
-        gc.gridx = 0;
-        gc.gridy = y;
-        add(new JLabel("Data do empréstimo (yyyy-MM-dd):"), gc);
+        // Data empréstimo + botão Hoje (BR na UI)
+        gc.gridx = 0; gc.gridy = y; add(new JLabel("Data do empréstimo (dd/MM/yyyy):"), gc);
         JPanel pEmp = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         pEmp.add(tfDataEmprestimo);
         JButton btHoje = new JButton("Hoje");
-        btHoje.addActionListener(e -> tfDataEmprestimo.setText(LocalDate.now().format(fmt)));
+        btHoje.addActionListener(e -> tfDataEmprestimo.setText(LocalDate.now().format(fmtBR)));
         pEmp.add(btHoje);
-        gc.gridx = 1;
-        add(pEmp, gc);
-        y++;
+        gc.gridx = 1; add(pEmp, gc); y++;
 
-        // Data prevista + botão +7 dias
-        gc.gridx = 0;
-        gc.gridy = y;
-        add(new JLabel("Data prevista (yyyy-MM-dd):"), gc);
+        // Data prevista (BR na UI)
+        gc.gridx = 0; gc.gridy = y; add(new JLabel("Data prevista (dd/MM/yyyy):"), gc);
         JPanel pPrev = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         pPrev.add(tfDataPrevista);
-
-        gc.gridx = 1;
-        add(pPrev, gc);
-        y++;
+        gc.gridx = 1; add(pPrev, gc); y++;
 
         // Botões
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -103,50 +82,40 @@ public class EmprestimoView extends JPanel {
         buttons.add(btAtualizar);
         buttons.add(btEmprestar);
 
-        gc.gridx = 0;
-        gc.gridy = y;
-        gc.gridwidth = 3;
+        gc.gridx = 0; gc.gridy = y; gc.gridwidth = 3;
         add(buttons, gc);
 
         // Ações
         btAtualizar.addActionListener(e -> loadCombos());
         btEmprestar.addActionListener(e -> doEmprestar());
 
-        // Renderers (exibição dos combos)
+        // Renderers
         cbLivro.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-                    boolean cellHasFocus) {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Livro l)
-                    setText("#" + l.getId() + " - " + l.getTitulo() + " [" + l.getStatus() + "]");
+                if (value instanceof Livro l) setText("#" + l.getId() + " - " + l.getTitulo() + " [" + l.getStatus() + "]");
                 return this;
             }
         });
         cbLeitor.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-                    boolean cellHasFocus) {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Leitor le)
-                    setText("#" + le.getId() + " - " + le.getNome() + " (" + le.getEmail() + ")");
+                if (value instanceof Leitor le) setText("#" + le.getId() + " - " + le.getNome() + " (" + le.getEmail() + ")");
                 return this;
             }
         });
         cbFuncionario.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-                    boolean cellHasFocus) {
+            @Override public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Funcionario f)
-                    setText("#" + f.getID() + " - " + f.getNome());
+                if (value instanceof Funcionario f) setText("#" + f.getID() + " - " + f.getNome());
                 return this;
             }
         });
 
-        // Defaults
-        tfDataEmprestimo.setText(LocalDate.now().format(fmt));
-        tfDataPrevista.setText(LocalDate.now().plusDays(7).format(fmt));
+        // Defaults (BR)
+        tfDataEmprestimo.setText(LocalDate.now().format(fmtBR));
+        tfDataPrevista.setText(LocalDate.now().plusDays(7).format(fmtBR));
+
         loadCombos();
     }
 
@@ -157,8 +126,7 @@ public class EmprestimoView extends JPanel {
                     .filter(l -> "Disponível".equalsIgnoreCase(l.getStatus()))
                     .collect(Collectors.toList());
             cbLivro.removeAllItems();
-            for (Livro l : livrosDisp)
-                cbLivro.addItem(l);
+            for (Livro l : livrosDisp) cbLivro.addItem(l);
 
             // Leitores
             cbLeitor.removeAllItems();
@@ -167,20 +135,14 @@ public class EmprestimoView extends JPanel {
                 cbLeitor.setEnabled(false); // aluno só pode para ele mesmo
             } else {
                 cbLeitor.setEnabled(true);
-                for (Leitor le : ctx.leitorDAO.listar())
-                    cbLeitor.addItem(le);
+                for (Leitor le : ctx.leitorDAO.listar()) cbLeitor.addItem(le);
             }
 
             // Funcionários
             cbFuncionario.removeAllItems();
-            for (Funcionario f : ctx.funcionarioDAO.listar())
-                cbFuncionario.addItem(f);
+            for (Funcionario f : ctx.funcionarioDAO.listar()) cbFuncionario.addItem(f);
 
-            if (!ctx.session.isAluno()) {
-                JOptionPane.showMessageDialog(this,
-                        "Listas atualizadas (" + livrosDisp.size() + " livros disponíveis).",
-                        "OK", JOptionPane.INFORMATION_MESSAGE);
-            }
+            // (sem popups aqui)
         } catch (Exception ex) {
             showError("Erro ao carregar dados: " + ex.getMessage());
         }
@@ -196,31 +158,34 @@ public class EmprestimoView extends JPanel {
             return;
         }
 
-        String dataEmp = tfDataEmprestimo.getText().trim();
-        String dataPrev = tfDataPrevista.getText().trim();
+        String dataEmpBR  = tfDataEmprestimo.getText().trim();
+        String dataPrevBR = tfDataPrevista.getText().trim();
 
-        // valida datas
+        // valida datas BR e converte p/ ISO
+        LocalDate dEmp, dPrev;
         try {
-            LocalDate.parse(dataEmp, fmt);
-            LocalDate.parse(dataPrev, fmt);
+            dEmp  = LocalDate.parse(dataEmpBR, fmtBR);
+            dPrev = LocalDate.parse(dataPrevBR, fmtBR);
         } catch (Exception e) {
-            showWarn("Datas inválidas. Use o formato yyyy-MM-dd.");
+            showWarn("Datas inválidas. Use o formato dd/MM/yyyy.");
             return;
         }
+        String dataEmpISO  = dEmp.format(fmtISO);
+        String dataPrevISO = dPrev.format(fmtISO);
 
         try {
-            Emprestimo emp = service.emprestarLivro(livro.getId(), leitor.getId(), func.getID(), dataEmp);
+            Emprestimo emp = service.emprestarLivro(livro.getId(), leitor.getId(), func.getID(), dataEmpISO);
             if (emp != null) {
-                // Se o usuário ajustou manualmente a data prevista, atualize no DAO se for
-                // diferente
-                if (!emp.getData_prevista().equals(dataPrev)) {
-                    ctx.emprestimoDAO.atualizarDataPrevista(emp.getid(), dataPrev);
+                // Se o usuário ajustou manualmente a data prevista, atualize no DAO se for diferente
+                LocalDate prevCriadaISO = LocalDate.parse(emp.getData_prevista(), fmtISO);
+                if (!prevCriadaISO.equals(dPrev)) {
+                    ctx.emprestimoDAO.atualizarDataPrevista(emp.getid(), dataPrevISO);
                 }
 
                 JOptionPane.showMessageDialog(this,
                         "Empréstimo criado!\nLivro: " + emp.getLivro().getTitulo() +
                                 "\nLeitor: " + emp.getLeitor().getNome() +
-                                "\nPrevista: " + dataPrev,
+                                "\nPrevista: " + dataPrevBR,
                         "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                 loadCombos(); // livro saiu da lista de disponíveis
             } else {
@@ -233,15 +198,8 @@ public class EmprestimoView extends JPanel {
         }
     }
 
-    public void refresh() {
-        loadCombos();
-    }
+    public void refresh() { loadCombos(); }
 
-    private void showWarn(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Aviso", JOptionPane.WARNING_MESSAGE);
-    }
-
-    private void showError(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Erro", JOptionPane.ERROR_MESSAGE);
-    }
+    private void showWarn(String msg) { JOptionPane.showMessageDialog(this, msg, "Aviso", JOptionPane.WARNING_MESSAGE); }
+    private void showError(String msg) { JOptionPane.showMessageDialog(this, msg, "Erro", JOptionPane.ERROR_MESSAGE); }
 }

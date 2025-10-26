@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Menu principal (FUNCIONÁRIO) sem a aba de Autores. */
+/** Menu principal (FUNCIONÁRIO) sem barra de menus e sem a aba de Autores. */
 public class MainMenu extends JFrame {
 
     private final AppContext ctx;
@@ -30,13 +30,10 @@ public class MainMenu extends JFrame {
         setLocationRelativeTo(null);
 
         addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                confirmExit();
-            }
+            @Override public void windowClosing(WindowEvent e) { confirmExit(); }
         });
 
-        setJMenuBar(buildMenuBar());
+        // (Removido) setJMenuBar(buildMenuBar());
         setLayout(new BorderLayout());
 
         add(buildSidebar(), BorderLayout.WEST);
@@ -47,49 +44,6 @@ public class MainMenu extends JFrame {
         pack();
     }
 
-    // ===================== UI STRUCTURE =====================
-
-    private JMenuBar buildMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
-
-        // Cadastros (sem Autores)
-        JMenu cadastros = new JMenu("Cadastros");
-        cadastros.setMnemonic(KeyEvent.VK_C);
-        cadastros.add(menuItem("Livros", KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK),
-                () -> showCard("livros")));
-        cadastros.add(menuItem("Leitores", KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK),
-                () -> showCard("leitores")));
-
-        // Operações
-        JMenu operacoes = new JMenu("Operações");
-        operacoes.setMnemonic(KeyEvent.VK_O);
-        operacoes.add(menuItem("Novo Empréstimo", KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK),
-                () -> showCard("emprestimos")));
-        operacoes.add(menuItem("Devolução", KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_DOWN_MASK),
-                () -> showCard("devolucoes")));
-
-        // Relatórios / Consultas
-        JMenu relatorios = new JMenu("Relatórios");
-        relatorios.setMnemonic(KeyEvent.VK_R);
-        relatorios.add(menuItem("Empréstimos Atrasados", null, () -> showCard("atrasados")));
-        relatorios.add(menuItem("Histórico por Leitor", null, () -> showCard("historico")));
-        relatorios.addSeparator();
-        relatorios.add(menuItem("Multas por Usuário (WIP)", null, () -> infoWIP("Multas por Usuário")));
-        relatorios.add(menuItem("Empréstimos em Aberto (WIP)", null, () -> infoWIP("Empréstimos em Aberto")));
-
-        // Ajuda
-        JMenu ajuda = new JMenu("Ajuda");
-        ajuda.setMnemonic(KeyEvent.VK_J);
-        ajuda.add(menuItem("Sobre", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), this::showAbout));
-
-        menuBar.add(cadastros);
-        menuBar.add(operacoes);
-        menuBar.add(relatorios);
-        menuBar.add(Box.createHorizontalGlue());
-        menuBar.add(ajuda);
-        return menuBar;
-    }
-
     private JPanel buildSidebar() {
         JPanel side = new JPanel(new GridBagLayout());
         side.setPreferredSize(new Dimension(240, 0));
@@ -97,8 +51,7 @@ public class MainMenu extends JFrame {
         side.setBackground(new Color(245, 247, 250));
 
         GridBagConstraints gc = new GridBagConstraints();
-        gc.gridx = 0;
-        gc.gridy = 0;
+        gc.gridx = 0; gc.gridy = 0;
         gc.insets = new Insets(6, 0, 6, 0);
         gc.fill = GridBagConstraints.HORIZONTAL;
         gc.weightx = 1;
@@ -107,28 +60,18 @@ public class MainMenu extends JFrame {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
         side.add(title, gc);
 
-        gc.gridy++;
-        side.add(primaryButton("Início", () -> showCard("home")), gc);
+        gc.gridy++; side.add(primaryButton("Início", () -> showCard("home")), gc);
         // (removido) Autores
-        gc.gridy++;
-        side.add(primaryButton("Livros", () -> showCard("livros")), gc);
-        gc.gridy++;
-        side.add(primaryButton("Leitores", () -> showCard("leitores")), gc);
-        gc.gridy++;
-        side.add(primaryButton("Empréstimos", () -> showCard("emprestimos")), gc);
-        gc.gridy++;
-        side.add(primaryButton("Devoluções", () -> showCard("devolucoes")), gc);
-        gc.gridy++;
-        side.add(primaryButton("Atrasados", () -> showCard("atrasados")), gc);
-        gc.gridy++;
-        side.add(primaryButton("Histórico Leitor", () -> showCard("historico")), gc);
+        gc.gridy++; side.add(primaryButton("Livros", () -> showCard("livros")), gc);
+        gc.gridy++; side.add(primaryButton("Leitores", () -> showCard("leitores")), gc);
+        gc.gridy++; side.add(primaryButton("Empréstimos", () -> showCard("emprestimos")), gc);
+        gc.gridy++; side.add(primaryButton("Devoluções", () -> showCard("devolucoes")), gc);
+        gc.gridy++; side.add(primaryButton("Atrasados", () -> showCard("atrasados")), gc);
+        gc.gridy++; side.add(primaryButton("Histórico Leitor", () -> showCard("historico")), gc);
 
-        gc.gridy++;
-        gc.weighty = 1;
-        side.add(Box.createVerticalGlue(), gc);
+        gc.gridy++; gc.weighty = 1; side.add(Box.createVerticalGlue(), gc);
 
-        gc.gridy++;
-        side.add(secondaryButton("Sair", this::confirmExit), gc);
+        gc.gridy++; side.add(secondaryButton("Sair", this::confirmExit), gc);
         return side;
     }
 
@@ -137,7 +80,6 @@ public class MainMenu extends JFrame {
         return center;
     }
 
-    @SuppressWarnings("unused")
     private JPanel buildStatusBar() {
         JPanel status = new JPanel(new BorderLayout());
         status.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
@@ -146,8 +88,8 @@ public class MainMenu extends JFrame {
         status.add(statusLabel, BorderLayout.WEST);
         status.add(clockLabel, BorderLayout.EAST);
 
-        Timer t = new Timer(1000, e -> clockLabel
-                .setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
+        Timer t = new Timer(1000, e ->
+                clockLabel.setText(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))));
         t.setRepeats(true);
         t.start();
 
@@ -158,11 +100,9 @@ public class MainMenu extends JFrame {
 
     private void registerCards() {
         addCard("home", new HomePanel());
-        // (removido) addCard("autores", ...);
         addCard("livros", new LivroView(ctx));
         addCard("leitores", new LeitoresView(ctx));
 
-        // Views conectadas ao EmprestimoService/DAOs via AppContext
         addCard("emprestimos", new EmprestimoView(ctx));
         addCard("devolucoes", new DevolucaoView(ctx));
         addCard("atrasados", new AtrasadosView(ctx));
@@ -177,8 +117,7 @@ public class MainMenu extends JFrame {
     }
 
     private void showCard(String name) {
-        if (!cards.containsKey(name))
-            return;
+        if (!cards.containsKey(name)) return;
         if ("emprestimos".equals(name)) {
             refreshEmprestimoLists();
         }
@@ -186,15 +125,9 @@ public class MainMenu extends JFrame {
         setStatus("Tela: " + capitalize(name));
     }
 
-    private void setStatus(String msg) {
-        statusLabel.setText(msg);
-    }
+    private void setStatus(String msg) { statusLabel.setText(msg); }
 
-    // ---------- Refresh externo chamado por DevolucaoView ----------
-    /**
-     * Recria o card de empréstimo para atualizar as listas (livros disponíveis,
-     * etc.).
-     */
+    /** Recria o card de empréstimo para atualizar as listas (livros disponíveis, etc.). */
     public void refreshEmprestimoLists() {
         JComponent old = cards.get("emprestimos");
         if (old != null) {
@@ -207,17 +140,6 @@ public class MainMenu extends JFrame {
         center.repaint();
     }
 
-    // ===================== HELPERS =====================
-    @SuppressWarnings("unused")
-    private JMenuItem menuItem(String text, KeyStroke ks, Runnable action) {
-        JMenuItem it = new JMenuItem(text);
-        if (ks != null)
-            it.setAccelerator(ks);
-        it.addActionListener(e -> action.run());
-        return it;
-    }
-
-    @SuppressWarnings("unused")
     private JButton primaryButton(String text, Runnable action) {
         JButton b = new JButton(text);
         stylePrimary(b);
@@ -225,7 +147,6 @@ public class MainMenu extends JFrame {
         return b;
     }
 
-    @SuppressWarnings("unused")
     private JButton secondaryButton(String text, Runnable action) {
         JButton b = new JButton(text);
         styleSecondary(b);
@@ -253,20 +174,6 @@ public class MainMenu extends JFrame {
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
 
-    private void infoWIP(String title) {
-        JOptionPane.showMessageDialog(this,
-                title + " — em construção.\nIntegre aqui seu relatório/consulta ao banco.",
-                "Em breve", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void showAbout() {
-        JOptionPane.showMessageDialog(this,
-                "DevLibrary — Menu Principal\n" +
-                        "UI em Swing com Menubar, Sidebar, CardLayout e Status bar.\n\n" +
-                        "Integre seus DAOs/Services nas telas correspondentes.",
-                "Sobre", JOptionPane.INFORMATION_MESSAGE);
-    }
-
     private void confirmExit() {
         int opt = JOptionPane.showConfirmDialog(this,
                 "Tem certeza que deseja sair?", "Sair",
@@ -280,21 +187,17 @@ public class MainMenu extends JFrame {
                     ctx.session.leitor = null;
                     ctx.session.role = null;
                 }
-            } catch (Throwable ignored) {
-            }
+            } catch (Throwable ignored) {}
 
             dispose();
 
-            // Reabre login (usa o Auth existente ou cria um novo se precisar)
-            if (ctx.auth == null)
-                ctx.auth = new DBAuthService(ctx);
+            if (ctx.auth == null) ctx.auth = new DBAuthService(ctx);
             SwingUtilities.invokeLater(() -> new LoginFrame(ctx, ctx.auth).setVisible(true));
         }
     }
 
     private String capitalize(String s) {
-        if (s == null || s.isEmpty())
-            return s;
+        if (s == null || s.isEmpty()) return s;
         return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 }
