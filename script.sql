@@ -16,6 +16,7 @@ CREATE DATABASE devlibrary;
 	CREATE TABLE LEITOR (
 		id_leitor INT AUTO_INCREMENT PRIMARY KEY,
 		nome VARCHAR(100) NOT NULL,
+        senha VARCHAR(100) NOT NULL,
 		matricula VARCHAR(20) NOT NULL UNIQUE,
 		email VARCHAR(100),
 		telefone VARCHAR(15)
@@ -26,6 +27,7 @@ CREATE DATABASE devlibrary;
 		id_funcionario INT AUTO_INCREMENT PRIMARY KEY,
 		nome VARCHAR(100) NOT NULL,
 		matricula VARCHAR(20) NOT NULL UNIQUE,
+        senha VARCHAR(100) NOT NULL,
 		email VARCHAR(100),
 		telefone VARCHAR(15)
 	);
