@@ -1,8 +1,4 @@
-DROP DATABASE devlibrary;
-	CREATE DATABASE devlibrary;
-	USE devlibrary;
-DROP DATABASE devlibrary;
-	CREATE DATABASE devlibrary;
+CREATE DATABASE devlibrary;
 	USE devlibrary;
 
 	-- LIVROS
