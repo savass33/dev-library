@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.Multa;
+import model.Emprestimo;
 
 public class MultaDAO {
     private final Connection conn;
@@ -27,7 +28,7 @@ public class MultaDAO {
         List<Multa> multas = new ArrayList<>();
         String sql = "SELECT * FROM MULTA";
         try (Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             EmprestimoDAO emprestimoDAO = new EmprestimoDAO(conn);
             while (rs.next()) {
@@ -77,6 +78,49 @@ public class MultaDAO {
             stmt.setString(2, dataPagamento);
             stmt.setInt(3, id);
             stmt.executeUpdate();
+        }
+    }
+
+    /** Busca a multa associada a um empréstimo (a mais recente). */
+    public Multa buscarPorEmprestimo(int idEmprestimo) throws SQLException {
+        String sql = "SELECT * FROM MULTA WHERE fk_emprestimo = ? ORDER BY id_multa DESC LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idEmprestimo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    EmprestimoDAO emprestimoDAO = new EmprestimoDAO(conn);
+                    return new Multa(
+                            rs.getInt("id_multa"),
+                            emprestimoDAO.buscarPorId(idEmprestimo),
+                            rs.getDouble("valor"),
+                            rs.getBoolean("pago"),
+                            rs.getString("data_pagamento"));
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Registra pagamento (upsert): se já existir multa para o empréstimo, atualiza
+     * valor/pago/data; senão, cria já como paga.
+     */
+    public void registrarPagamento(int idEmprestimo, double valor, String dataPagamentoISO) throws SQLException {
+        Multa existente = buscarPorEmprestimo(idEmprestimo);
+        if (existente != null) {
+            String upd = "UPDATE MULTA SET valor = ?, pago = ?, data_pagamento = ? WHERE id_multa = ?";
+            try (PreparedStatement ps = conn.prepareStatement(upd)) {
+                ps.setDouble(1, valor);
+                ps.setBoolean(2, true);
+                ps.setString(3, dataPagamentoISO);
+                ps.setInt(4, existente.getId());
+                ps.executeUpdate();
+            }
+        } else {
+            EmprestimoDAO emprestimoDAO = new EmprestimoDAO(conn);
+            Emprestimo emp = emprestimoDAO.buscarPorId(idEmprestimo);
+            Multa nova = new Multa(0, emp, valor, true, dataPagamentoISO);
+            inserir(nova);
         }
     }
 }

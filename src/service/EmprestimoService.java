@@ -16,14 +16,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
-/**
- * Serviço responsável pelas regras de negócio de empréstimo e devolução de
- * livros.
- * Valida disponibilidade, limite de empréstimos por usuário, prazos, atualiza
- * status do livro,
- * e delega persistência para os DAOs. Também cria multa se houver atraso na
- * devolução.
- */
+/** Regras de negócio de empréstimos, devoluções e multas. */
 public class EmprestimoService {
     private final EmprestimoDAO emprestimoDAO;
     private final LivroDAO livroDAO;
@@ -33,13 +26,12 @@ public class EmprestimoService {
 
     private final DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
 
-    // Regras configuráveis
-    private final int LIMITE_EMPRESTIMOS_POR_LEITOR = 5; // máximo simultâneo
-    private final int PRAZO_PADRAO_DIAS = 7; // dias padrão
-    private final double TAXA_MULTA_DIARIA = 2.00; // R$ por dia de atraso
+    private final int LIMITE_EMPRESTIMOS_POR_LEITOR = 5;
+    private final int PRAZO_PADRAO_DIAS = 7;
+    private final double TAXA_MULTA_DIARIA = 1.00; // R$ 1,00/dia
 
     public EmprestimoService(EmprestimoDAO emprestimoDAO, LivroDAO livroDAO,
-            LeitorDAO leitorDAO, FuncionarioDAO funcionarioDAO, MultaDAO multaDAO) {
+                             LeitorDAO leitorDAO, FuncionarioDAO funcionarioDAO, MultaDAO multaDAO) {
         this.emprestimoDAO = emprestimoDAO;
         this.livroDAO = livroDAO;
         this.leitorDAO = leitorDAO;
@@ -47,32 +39,25 @@ public class EmprestimoService {
         this.multaDAO = multaDAO;
     }
 
-    /** Cria um empréstimo (data prevista pode ser calculada pelo prazo padrão). */
     public Emprestimo emprestarLivro(int idLivro, int idLeitor, int idFuncionario, String dataEmprestimoStr)
             throws ServiceException {
         try {
             Livro livro = livroDAO.buscarPorId(idLivro);
-            if (livro == null)
-                throw new ServiceException("Livro não encontrado (id: " + idLivro + ")");
+            if (livro == null) throw new ServiceException("Livro não encontrado (id: " + idLivro + ")");
             if (!"Disponível".equalsIgnoreCase(livro.getStatus()))
                 throw new ServiceException("Livro não está disponível (status: " + livro.getStatus() + ")");
 
             Leitor leitor = leitorDAO.buscarPorId(idLeitor);
-            if (leitor == null)
-                throw new ServiceException("Leitor não encontrado.");
+            if (leitor == null) throw new ServiceException("Leitor não encontrado.");
 
             Funcionario funcionario = funcionarioDAO.buscarPorId(idFuncionario);
-            if (funcionario == null)
-                throw new ServiceException("Funcionário não encontrado.");
+            if (funcionario == null) throw new ServiceException("Funcionário não encontrado.");
 
-            // Verificar limite de empréstimos ativos do leitor
             long ativos = emprestimoDAO.listar().stream()
-                    .filter(e -> e.getLeitor() != null && e.getLeitor().getId() == idLeitor
-                            && e.getData_devolucao() == null)
+                    .filter(e -> e.getLeitor() != null && e.getLeitor().getId() == idLeitor && e.getData_devolucao() == null)
                     .count();
             if (ativos >= LIMITE_EMPRESTIMOS_POR_LEITOR)
-                throw new ServiceException(
-                        "Leitor atingiu o limite de empréstimos ativos (" + LIMITE_EMPRESTIMOS_POR_LEITOR + ").");
+                throw new ServiceException("Leitor atingiu o limite de empréstimos ativos (" + LIMITE_EMPRESTIMOS_POR_LEITOR + ").");
 
             LocalDate dataEmp = (dataEmprestimoStr == null || dataEmprestimoStr.isBlank())
                     ? LocalDate.now()
@@ -83,11 +68,8 @@ public class EmprestimoService {
                     dataEmp.format(fmt), dataPrev.format(fmt), null, leitor);
 
             emprestimoDAO.inserir(emp);
-
-            // Atualiza status do livro para "Emprestado"
             livroDAO.atualizarStatus(livro.getId(), "Emprestado");
 
-            // Retorna um matching do que foi salvo (heurística)
             return emprestimoDAO.listar().stream()
                     .filter(e -> e.getLivro().getId() == livro.getId()
                             && e.getLeitor().getId() == leitor.getId()
@@ -98,29 +80,64 @@ public class EmprestimoService {
         }
     }
 
-    /** Registra devolução. Se houver atraso, gera multa automática. */
+    /** Cria empréstimo com datas definidas (usado para gerar atraso de teste). */
+    public Emprestimo criarEmprestimoAtrasado(int idLivro, int idLeitor, int idFuncionario,
+                                              LocalDate dataEmp, LocalDate dataPrev) throws ServiceException {
+        try {
+            Livro livro = livroDAO.buscarPorId(idLivro);
+            if (livro == null) throw new ServiceException("Livro não encontrado (id: " + idLivro + ")");
+            if (!"Disponível".equalsIgnoreCase(livro.getStatus()))
+                throw new ServiceException("Livro não está disponível (status: " + livro.getStatus() + ")");
+
+            Leitor leitor = leitorDAO.buscarPorId(idLeitor);
+            if (leitor == null) throw new ServiceException("Leitor não encontrado.");
+
+            Funcionario funcionario = funcionarioDAO.buscarPorId(idFuncionario);
+            if (funcionario == null) throw new ServiceException("Funcionário não encontrado.");
+
+            long ativos = emprestimoDAO.listar().stream()
+                    .filter(e -> e.getLeitor() != null && e.getLeitor().getId() == idLeitor && e.getData_devolucao() == null)
+                    .count();
+            if (ativos >= LIMITE_EMPRESTIMOS_POR_LEITOR)
+                throw new ServiceException("Leitor atingiu o limite de empréstimos ativos (" + LIMITE_EMPRESTIMOS_POR_LEITOR + ").");
+
+            Emprestimo emp = new Emprestimo(0, livro, funcionario,
+                    dataEmp.format(fmt), dataPrev.format(fmt), null, leitor);
+
+            emprestimoDAO.inserir(emp);
+            livroDAO.atualizarStatus(livro.getId(), "Emprestado");
+
+            return emprestimoDAO.listar().stream()
+                    .filter(e -> e.getLivro().getId() == livro.getId()
+                            && e.getLeitor().getId() == leitor.getId()
+                            && e.getData_emprestimo().equals(dataEmp.format(fmt)))
+                    .findFirst().orElse(emp);
+        } catch (SQLException e) {
+            throw new ServiceException("Erro ao criar empréstimo atrasado: " + e.getMessage(), e);
+        }
+    }
+
+    /** Registra devolução; se houver atraso, cria multa (não paga) e libera o livro. */
     public void devolverLivro(int idEmprestimo, String dataDevolucaoStr) throws ServiceException {
         try {
             Emprestimo emprestimo = emprestimoDAO.buscarPorId(idEmprestimo);
-            if (emprestimo == null)
-                throw new ServiceException("Empréstimo não encontrado (id: " + idEmprestimo + ")");
-            if (emprestimo.getData_devolucao() != null)
-                throw new ServiceException("Empréstimo já devolvido.");
+            if (emprestimo == null) throw new ServiceException("Empréstimo não encontrado (id: " + idEmprestimo + ")");
+            if (emprestimo.getData_devolucao() != null) throw new ServiceException("Empréstimo já devolvido.");
 
             LocalDate dataDev = (dataDevolucaoStr == null || dataDevolucaoStr.isBlank())
                     ? LocalDate.now()
                     : LocalDate.parse(dataDevolucaoStr, fmt);
 
-            // Atualiza devolução
+            // devolve
             emprestimoDAO.atualizarDevolucao(idEmprestimo, dataDev.format(fmt));
 
-            // Atualiza livro para "Disponível"
+            // libera livro
             Livro livro = emprestimo.getLivro();
             if (livro != null) {
                 livroDAO.atualizarStatus(livro.getId(), "Disponível");
             }
 
-            // Multa se atraso
+            // multa automática em caso de atraso
             LocalDate prevista = LocalDate.parse(emprestimo.getData_prevista(), fmt);
             long diasAtraso = Math.max(0, java.time.temporal.ChronoUnit.DAYS.between(prevista, dataDev));
             if (diasAtraso > 0) {
@@ -130,15 +147,6 @@ public class EmprestimoService {
             }
         } catch (SQLException e) {
             throw new ServiceException("Erro ao registrar devolução: " + e.getMessage(), e);
-        }
-    }
-
-    public boolean isLivroDisponivel(int idLivro) throws ServiceException {
-        try {
-            Livro l = livroDAO.buscarPorId(idLivro);
-            return l != null && "Disponível".equalsIgnoreCase(l.getStatus());
-        } catch (SQLException e) {
-            throw new ServiceException("Erro ao verificar disponibilidade do livro: " + e.getMessage(), e);
         }
     }
 
@@ -165,27 +173,37 @@ public class EmprestimoService {
     }
 
     public long calcularDiasAtraso(Emprestimo emprestimo) {
-        if (emprestimo == null)
-            return 0;
+        if (emprestimo == null) return 0;
         try {
             LocalDate prevista = LocalDate.parse(emprestimo.getData_prevista(), fmt);
-            LocalDate devolucao = emprestimo.getData_devolucao() == null ? LocalDate.now()
+            LocalDate fim = (emprestimo.getData_devolucao() == null)
+                    ? LocalDate.now()
                     : LocalDate.parse(emprestimo.getData_devolucao(), fmt);
-            long dias = java.time.temporal.ChronoUnit.DAYS.between(prevista, devolucao);
+            long dias = java.time.temporal.ChronoUnit.DAYS.between(prevista, fim);
             return Math.max(0, dias);
         } catch (Exception e) {
             return 0;
         }
     }
 
-    /** Exceção interna para erros do serviço. */
-    public static class ServiceException extends RuntimeException {
-        public ServiceException(String message) {
-            super(message);
-        }
+    /** Valor atual da multa considerando hoje se ainda não devolvido. */
+    public double valorMultaAtual(Emprestimo emprestimo, LocalDate hoje) {
+        long dias = calcularDiasAtraso(emprestimo);
+        return dias * TAXA_MULTA_DIARIA;
+    }
 
-        public ServiceException(String message, Throwable cause) {
-            super(message, cause);
+    /** Marca a multa do empréstimo como paga (upsert). */
+    public void pagarMulta(int idEmprestimo, double valor, LocalDate data) throws ServiceException {
+        try {
+            multaDAO.registrarPagamento(idEmprestimo, valor, data.format(fmt));
+        } catch (SQLException e) {
+            throw new ServiceException("Erro ao registrar pagamento: " + e.getMessage(), e);
         }
+    }
+
+    /** Exceção de serviço. */
+    public static class ServiceException extends RuntimeException {
+        public ServiceException(String message) { super(message); }
+        public ServiceException(String message, Throwable cause) { super(message, cause); }
     }
 }
